@@ -362,7 +362,7 @@ function applyNonMaximumSuppression(
 }
 
 /**
- * Key Structural Line Extraction (Extended Difference-of-Gaussians with Structural Thresholding)
+ * Key Structural Line Extraction (Extended Difference-of-Gaussians with Semantic Thresholding)
  */
 function extractKeyStructuralLines(
   flattenedLum: Float32Array,
@@ -374,16 +374,17 @@ function extractKeyStructuralLines(
   const total = width * height;
   const lines = new Float32Array(total);
 
-  const blurRadius2 = detailLevel === 'very_simple' ? 4 : detailLevel === 'simple' ? 3 : 2;
+  // Optimized blur radii for semantic line abstraction (suppressing texture, skin pores, and fine details)
+  const blurRadius2 = detailLevel === 'very_simple' ? 6 : detailLevel === 'simple' ? 4 : 2;
   const g1 = applyBoxBlur(flattenedLum, width, height, 1);
   const g2 = applyBoxBlur(flattenedLum, width, height, blurRadius2);
 
-  const gamma = detailLevel === 'very_simple' ? 0.92 : detailLevel === 'simple' ? 0.95 : 0.98;
-  const phi = 20.0;
-  const thresholdEpsilon = detailLevel === 'very_simple' ? 0.05 : detailLevel === 'simple' ? 0.03 : 0.015;
+  const gamma = detailLevel === 'very_simple' ? 0.90 : detailLevel === 'simple' ? 0.94 : 0.97;
+  const phi = 25.0;
+  const thresholdEpsilon = detailLevel === 'very_simple' ? 0.08 : detailLevel === 'simple' ? 0.04 : 0.02;
 
   const gradMagnitude = computeSobelGradient(flattenedLum, width, height);
-  const gradThresh = detailLevel === 'very_simple' ? 0.28 : detailLevel === 'simple' ? 0.18 : 0.10;
+  const gradThresh = detailLevel === 'very_simple' ? 0.35 : detailLevel === 'simple' ? 0.22 : 0.12;
 
   for (let i = 0; i < total; i++) {
     const diff = (1 + gamma) * g1[i] - gamma * g2[i];
@@ -399,7 +400,7 @@ function extractKeyStructuralLines(
       stroke = Math.max(stroke, Math.min(1.0, (grad - gradThresh) * 2.0));
     }
 
-    lines[i] = stroke > 0.3 ? Math.min(1.0, (stroke - 0.3) / 0.45) : 0;
+    lines[i] = stroke > 0.35 ? Math.min(1.0, (stroke - 0.35) / 0.4) : 0;
   }
 
   const thinnedLines = applyNonMaximumSuppression(lines, gradMagnitude, width, height);
@@ -415,7 +416,8 @@ function pruneStrayLineFragments(
   height: number,
   detailLevel: 'very_simple' | 'simple' | 'medium'
 ): Float32Array {
-  const minLength = detailLevel === 'very_simple' ? 35 : detailLevel === 'simple' ? 20 : 10;
+  // Higher minimum length for very_simple to eliminate all random speckles and short jagged lines
+  const minLength = detailLevel === 'very_simple' ? 60 : detailLevel === 'simple' ? 30 : 15;
   const total = width * height;
   const visited = new Uint8Array(total);
   const result = new Float32Array(lines);
