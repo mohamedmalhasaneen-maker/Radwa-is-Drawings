@@ -7,7 +7,8 @@ import {
   ShapeOptions, 
   HistoryStep,
   LayerSnapshot,
-  BlendModeType
+  BlendModeType,
+  ProjectData
 } from './types';
 import { BRUSH_PRESETS } from './utils/brushPresets';
 
@@ -17,6 +18,7 @@ import {
   loadSavedPreferences, 
   savePreferences 
 } from './utils/storage';
+import { publishProjectToCommunity } from './firebase';
 import { DrawingCanvas } from './components/DrawingCanvas';
 import { Toolbar } from './components/Toolbar';
 import { BrushPanel } from './components/BrushPanel';
@@ -25,6 +27,7 @@ import { LayersPanel } from './components/LayersPanel';
 import { Header } from './components/Header';
 import { LineArtModal } from './components/LineArtModal';
 import { ProjectModal } from './components/ProjectModal';
+import { SaveProjectModal } from './components/SaveProjectModal';
 import { ExportModal } from './components/ExportModal';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { ResizeCanvasModal } from './components/ResizeCanvasModal';
@@ -52,6 +55,13 @@ interface Toast {
 export default function App() {
   // Canvas Dimensions & Project Settings
   const [projectTitle, setProjectTitle] = useState<string>('مشروع رسم رقمي');
+  const [artistName, setArtistName] = useState<string>(() => {
+    try {
+      return localStorage.getItem('rassam_artist_name') || 'رسام مبدع';
+    } catch {
+      return 'رسام مبدع';
+    }
+  });
   const [projectId, setProjectId] = useState<string>(() => `proj_${Date.now()}`);
   const [canvasWidth, setCanvasWidth] = useState<number>(1920);
   const [canvasHeight, setCanvasHeight] = useState<number>(1080);
@@ -125,7 +135,9 @@ export default function App() {
   const [showLineArtModal, setShowLineArtModal] = useState<boolean>(false);
   const [pendingLineArtSource, setPendingLineArtSource] = useState<HTMLImageElement | null>(null);
   const [showProjectModal, setShowProjectModal] = useState<boolean>(false);
-  const [projectModalMode, setProjectModalMode] = useState<'new' | 'open'>('new');
+  const [projectModalMode, setProjectModalMode] = useState<'community' | 'saved' | 'new'>('community');
+  const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
+  const [saveModalThumb, setSaveModalThumb] = useState<string>('');
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState<boolean>(false);
   const [showResizeModal, setShowResizeModal] = useState<boolean>(false);
@@ -672,13 +684,12 @@ export default function App() {
     };
   }, []);
 
-  // Save Project to IndexedDB
-  const handleSaveProject = async () => {
+  // Generate Composite Artwork Thumbnail
+  const generateCurrentThumbnail = useCallback((): string => {
     try {
-      // Generate thumbnail
       const thumbCanvas = document.createElement('canvas');
-      thumbCanvas.width = 240;
-      thumbCanvas.height = Math.round((240 * canvasHeight) / canvasWidth);
+      thumbCanvas.width = 320;
+      thumbCanvas.height = Math.round((320 * canvasHeight) / canvasWidth);
       const thumbCtx = thumbCanvas.getContext('2d');
       if (thumbCtx) {
         if (!hasTransparentBg) {
@@ -690,8 +701,25 @@ export default function App() {
           thumbCtx.globalAlpha = l.opacity / 100;
           thumbCtx.drawImage(l.canvas, 0, 0, thumbCanvas.width, thumbCanvas.height);
         }
+        return thumbCanvas.toDataURL('image/jpeg', 0.85);
       }
+    } catch (e) {
+      console.error('Failed to generate thumbnail:', e);
+    }
+    return '';
+  }, [layers, canvasWidth, canvasHeight, backgroundColor, hasTransparentBg]);
 
+  // Open Save Project Dialog
+  const handleOpenSaveModal = useCallback(() => {
+    const thumb = generateCurrentThumbnail();
+    setSaveModalThumb(thumb);
+    setShowSaveModal(true);
+  }, [generateCurrentThumbnail]);
+
+  // Perform Save with Artist Name & Community Publishing
+  const handlePerformSave = async (title: string, authorArtistName: string, publishToCommunity: boolean) => {
+    try {
+      const thumb = generateCurrentThumbnail();
       const serializableLayers = layers.map((l) => ({
         id: l.id,
         name: l.name,
@@ -702,9 +730,16 @@ export default function App() {
         dataUrl: l.canvas.toDataURL('image/png'),
       }));
 
-      await saveProjectToDB({
+      const finalArtist = (authorArtistName && authorArtistName.trim()) ? authorArtistName.trim() : 'رسام مبدع';
+      const finalTitle = (title && title.trim()) ? title.trim() : projectTitle;
+
+      setProjectTitle(finalTitle);
+      setArtistName(finalArtist);
+
+      const projectData: ProjectData = {
         id: projectId,
-        title: projectTitle,
+        title: finalTitle,
+        artistName: finalArtist,
         width: canvasWidth,
         height: canvasHeight,
         dpi,
@@ -712,27 +747,45 @@ export default function App() {
         hasTransparentBg,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        thumbnail: thumbCanvas.toDataURL('image/jpeg', 0.8),
+        thumbnail: thumb,
         layers: serializableLayers,
-      });
+        likesCount: 0,
+      };
 
+      // 1. Save locally to persistent IndexedDB
+      await saveProjectToDB(projectData);
       savePreferences({ lastProjectId: projectId });
-      addToast('تم حفظ المشروع بنجاح في ذاكرة المتصفح الدائمة.', 'success');
+
+      // 2. Publish to Firebase Firestore if requested (so all users can see it)
+      if (publishToCommunity) {
+        await publishProjectToCommunity(projectData);
+        addToast(`تم حفظ لوحة "${finalTitle}" ونشرها بنجاح باسم الفنان "${finalArtist}" في المعرض العام! 🎨✨`, 'success');
+      } else {
+        addToast(`تم حفظ لوحة "${finalTitle}" محلياً بنجاح في ذاكرة المتصفح.`, 'success');
+      }
     } catch (e) {
-      addToast('حدث خطأ أثناء حفظ المشروع.', 'error');
+      console.error('Error in handlePerformSave:', e);
+      addToast('حدث خطأ أثناء حفظ أو نشر المشروع.', 'error');
     }
   };
 
-  // Open Saved Project from IndexedDB
-  const handleOpenProject = async (id: string) => {
+  // Open Saved Project from IndexedDB or Community Data
+  const handleOpenProject = async (id: string, customProjectData?: ProjectData) => {
     try {
-      const proj = await getProjectFromDB(id);
+      let proj: ProjectData | null = customProjectData || null;
+      if (!proj) {
+        proj = await getProjectFromDB(id);
+      }
+
       if (!proj) {
         addToast('لم يتم العثور على المشروع المحدد.', 'error');
         return;
       }
 
       setProjectTitle(proj.title);
+      if (proj.artistName) {
+        setArtistName(proj.artistName);
+      }
       setProjectId(proj.id);
       setCanvasWidth(proj.width);
       setCanvasHeight(proj.height);
@@ -770,8 +823,43 @@ export default function App() {
         setActiveLayerId(restoredLayers[restoredLayers.length - 1].id);
       }
 
-      addToast(`تم فتح المشروع "${proj.title}" بنجاح.`, 'success');
+      // Reset History with the newly opened project
+      historyStack.current = [
+        {
+          id: `step_open_${Date.now()}`,
+          description: `فتح المشروع: ${proj.title}`,
+          layersSnapshots: snapshotLayers(restoredLayers, proj.width, proj.height),
+          activeLayerId: restoredLayers[0]?.id || '',
+          canvasWidth: proj.width,
+          canvasHeight: proj.height,
+        },
+      ];
+      historyIndex.current = 0;
+      setCanUndo(false);
+      setCanRedo(false);
+
+      // Center and fit canvas
+      const fitZoom = Math.min(
+        (window.innerWidth - 380) / proj.width,
+        (window.innerHeight - 150) / proj.height
+      );
+      setTransform({
+        zoom: Math.max(0.15, Math.min(1.5, fitZoom > 0 ? fitZoom : 0.65)),
+        panX: 0,
+        panY: 0,
+        rotation: 0,
+        flipH: false,
+        flipV: false,
+      });
+
+      addToast(
+        proj.artistName
+          ? `تم فتح لوحة "${proj.title}" بريشة الفنان ${proj.artistName} بنجاح.`
+          : `تم فتح المشروع "${proj.title}" بنجاح.`,
+        'success'
+      );
     } catch (e) {
+      console.error('Failed to open project:', e);
       addToast('حدث خطأ أثناء فتح المشروع.', 'error');
     }
   };
@@ -1108,10 +1196,10 @@ export default function App() {
         handleToggleFullScreen();
       } else if (ctrlOrCmd && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        handleSaveProject();
+        handleOpenSaveModal();
       } else if (ctrlOrCmd && e.key.toLowerCase() === 'o') {
         e.preventDefault();
-        setProjectModalMode('open');
+        setProjectModalMode('community');
         setShowProjectModal(true);
       } else if (!ctrlOrCmd && (e.key === '[' || e.key === ']' || e.key === 'Tab')) {
         e.preventDefault();
@@ -1142,7 +1230,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleUndo, handleRedo, isFullScreen, handleToggleFullScreen, handleSaveProject, handleSelectTool, handleToggleLockCanvas]);
+  }, [handleUndo, handleRedo, isFullScreen, handleToggleFullScreen, handleOpenSaveModal, handleSelectTool, handleToggleLockCanvas]);
 
   // Drag and drop onto app window
   const handleDragOver = (e: React.DragEvent) => {
@@ -1208,10 +1296,10 @@ export default function App() {
           setShowProjectModal(true);
         }}
         onOpenProjectsManager={() => {
-          setProjectModalMode('open');
+          setProjectModalMode('community');
           setShowProjectModal(true);
         }}
-        onSaveProject={handleSaveProject}
+        onSaveProject={handleOpenSaveModal}
         onOpenExportModal={() => setShowExportModal(true)}
         onOpenLineArtModal={() => setShowLineArtModal(true)}
         onOpenShortcutsModal={() => setShowShortcutsModal(true)}
@@ -1587,12 +1675,25 @@ export default function App() {
         initialImageSource={pendingLineArtSource}
       />
 
+      <SaveProjectModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        defaultTitle={projectTitle}
+        defaultArtistName={artistName}
+        canvasWidth={canvasWidth}
+        canvasHeight={canvasHeight}
+        layersCount={layers.length}
+        previewThumbnail={saveModalThumb}
+        onSave={handlePerformSave}
+      />
+
       <ProjectModal
         isOpen={showProjectModal}
         onClose={() => setShowProjectModal(false)}
         onNewProject={initProject}
         onOpenProject={handleOpenProject}
         initialMode={projectModalMode}
+        onShowToast={addToast}
       />
 
       <ExportModal

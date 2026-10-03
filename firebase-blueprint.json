@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "Shared and community drawing projects created by artists and users.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the project",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the artwork or project",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "artistName": {
+          "type": "string",
+          "description": "Name of the artist/painter who created the artwork",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "width": {
+          "type": "number",
+          "description": "Width of canvas in pixels"
+        },
+        "height": {
+          "type": "number",
+          "description": "Height of canvas in pixels"
+        },
+        "dpi": {
+          "type": "number",
+          "description": "Dots per inch resolution"
+        },
+        "backgroundColor": {
+          "type": "string",
+          "description": "Background canvas color",
+          "maxLength": 30
+        },
+        "hasTransparentBg": {
+          "type": "boolean",
+          "description": "Whether the background is transparent"
+        },
+        "thumbnail": {
+          "type": "string",
+          "description": "Data URL image thumbnail of the artwork",
+          "maxLength": 350000
+        },
+        "layersData": {
+          "type": "string",
+          "description": "JSON string containing layers metadata and layer raster data URLs",
+          "maxLength": 800000
+        },
+        "likesCount": {
+          "type": "number",
+          "description": "Number of appreciations and likes on the artwork"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of artwork creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of last artwork update"
+        }
+      },
+      "required": ["id", "title", "artistName", "width", "height", "thumbnail", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Collection of community and shared projects uploaded by artists."
+    }
+  }
+}

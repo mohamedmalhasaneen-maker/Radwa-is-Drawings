@@ -150,6 +150,7 @@ export interface SerializableLayer {
 export interface ProjectMetadata {
   id: string;
   title: string;
+  artistName?: string;
   width: number;
   height: number;
   dpi: number;
@@ -158,6 +159,7 @@ export interface ProjectMetadata {
   createdAt: number;
   updatedAt: number;
   thumbnail: string;
+  likesCount?: number;
 }
 
 export interface ProjectData extends ProjectMetadata {
@@ -274,4 +276,15 @@ export interface ColorPalette {
   id: string;
   name: string;
   colors: string[];
+}
+
+export type RulerUnit = 'px' | 'cm' | 'mm' | 'in';
+
+export interface GuideLine {
+  id: string;
+  type: 'horizontal' | 'vertical';
+  orientation?: 'horizontal' | 'vertical';
+  position: number;
+  color?: string;
+  locked?: boolean;
 }

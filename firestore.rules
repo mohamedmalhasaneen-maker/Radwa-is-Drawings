@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['id', 'title', 'artistName', 'width', 'height', 'thumbnail', 'createdAt']) &&
+             data.keys().hasOnly(['id', 'title', 'artistName', 'width', 'height', 'dpi', 'backgroundColor', 'hasTransparentBg', 'thumbnail', 'layersData', 'likesCount', 'createdAt', 'updatedAt']) &&
+             data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+             data.artistName is string && data.artistName.size() > 0 && data.artistName.size() <= 100 &&
+             data.width is number && data.width > 0 && data.width <= 10000 &&
+             data.height is number && data.height > 0 && data.height <= 10000 &&
+             (!('dpi' in data) || (data.dpi is number && data.dpi > 0 && data.dpi <= 1200)) &&
+             (!('backgroundColor' in data) || (data.backgroundColor is string && data.backgroundColor.size() <= 30)) &&
+             (!('hasTransparentBg' in data) || data.hasTransparentBg is bool) &&
+             data.thumbnail is string && data.thumbnail.size() > 0 && data.thumbnail.size() <= 350000 &&
+             (!('layersData' in data) || (data.layersData is string && data.layersData.size() <= 800000)) &&
+             (!('likesCount' in data) || (data.likesCount is number && data.likesCount >= 0)) &&
+             data.createdAt is string && data.createdAt.size() <= 40 &&
+             (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 40));
+    }
+
+    // Projects collection for shared community artworks
+    match /projects/{projectId} {
+      allow get, list: if true;
+
+      allow create: if isValidId(projectId) &&
+                       incoming().id == projectId &&
+                       isValidProject(incoming());
+
+      allow update: if isValidId(projectId) &&
+                       isValidProject(incoming()) &&
+                       incoming().id == existing().id &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         // Action 1: Like increment
+                         (incoming().diff(existing()).affectedKeys().hasOnly(['likesCount', 'updatedAt']) &&
+                          incoming().likesCount >= existing().likesCount) ||
+                         // Action 2: Update artwork content
+                         (incoming().diff(existing()).affectedKeys().hasOnly(['title', 'artistName', 'thumbnail', 'layersData', 'updatedAt', 'width', 'height', 'dpi', 'backgroundColor', 'hasTransparentBg']))
+                       );
+
+      allow delete: if isValidId(projectId);
+    }
+  }
+}

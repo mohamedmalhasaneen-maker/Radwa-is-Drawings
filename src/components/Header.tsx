@@ -22,8 +22,7 @@ import {
   FlipVertical,
   Settings,
   Lock,
-  Unlock,
-  Ruler
+  Unlock
 } from 'lucide-react';
 import { CanvasTransform } from '../types';
 
@@ -40,8 +39,6 @@ interface HeaderProps {
   onFitToScreen: () => void;
   showGrid: boolean;
   onToggleGrid: () => void;
-  showRulers: boolean;
-  onToggleRulers: () => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenNewProject: () => void;
@@ -59,7 +56,6 @@ interface HeaderProps {
   onOpenResizeModal: () => void;
   isCanvasLocked?: boolean;
   onToggleLockCanvas?: () => void;
-  onOpenSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -75,8 +71,6 @@ export const Header: React.FC<HeaderProps> = ({
   onFitToScreen,
   showGrid,
   onToggleGrid,
-  showRulers,
-  onToggleRulers,
   isDarkMode,
   onToggleDarkMode,
   onOpenNewProject,
@@ -94,7 +88,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenResizeModal,
   isCanvasLocked = false,
   onToggleLockCanvas,
-  onOpenSettings,
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   const [titleInput, setTitleInput] = useState<string>(projectTitle);
@@ -289,18 +282,6 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="h-4 w-[1px] bg-neutral-800 mx-1" />
 
-        {/* Ruler toggle */}
-        <button
-          id="header-ruler-toggle-btn"
-          onClick={onToggleRulers}
-          className={`p-1.5 rounded-lg transition-colors ${
-            showRulers ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 shadow-sm' : 'text-neutral-400 hover:text-neutral-200'
-          }`}
-          title={showRulers ? 'إخفاء المسطرة الديناميكية (Ctrl+R)' : 'إظهار المسطرة الديناميكية (Ctrl+R)'}
-        >
-          <Ruler className="w-4 h-4" />
-        </button>
-
         {/* Grid toggle */}
         <button
           id="header-grid-toggle-btn"
@@ -362,14 +343,15 @@ export const Header: React.FC<HeaderProps> = ({
           <span>تصدير</span>
         </button>
 
-        {/* Projects / New / Settings menu */}
+        {/* Community Projects & Gallery button */}
         <button
           id="header-projects-mgr-btn"
           onClick={onOpenProjectsManager}
-          className="p-2 rounded-xl bg-neutral-800 text-neutral-300 hover:text-neutral-100 hover:bg-neutral-700 transition-colors hidden sm:flex"
-          title="المشاريع المحفوظة"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-neutral-200 hover:text-amber-300 text-xs font-medium transition-all border border-neutral-750"
+          title="معرض الفنانين والمشاريع المشتركة (Ctrl+O)"
         >
-          <FolderOpen className="w-4 h-4" />
+          <FolderOpen className="w-3.5 h-3.5 text-amber-400" />
+          <span className="hidden lg:inline">معرض الرسامين</span>
         </button>
 
         {/* New Project */}
@@ -406,43 +388,8 @@ export const Header: React.FC<HeaderProps> = ({
           <HelpCircle className="w-4 h-4" />
         </button>
 
-        {/* Settings button */}
-        {onOpenSettings && (
-          <button
-            id="header-settings-btn"
-            onClick={onOpenSettings}
-            className="p-2 rounded-xl bg-neutral-800 text-neutral-300 hover:text-neutral-100 hover:bg-neutral-700 transition-colors hidden sm:flex"
-            title="إعدادات مساحة الرسم والمساطر"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
-        )}
-
         {/* Side panels toggle buttons on mobile/tablet */}
         <div className="flex items-center gap-1 sm:hidden">
-          {/* Mobile Ruler Toggle */}
-          <button
-            id="header-ruler-toggle-btn-mobile"
-            onClick={onToggleRulers}
-            className={`p-2 rounded-xl text-xs flex items-center justify-center transition-all ${
-              showRulers
-                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50'
-                : 'bg-neutral-800 text-neutral-400 hover:text-neutral-200'
-            }`}
-            title={showRulers ? 'إخفاء المسطرة' : 'إظهار المسطرة'}
-          >
-            <Ruler className="w-4 h-4" />
-          </button>
-          {onOpenSettings && (
-            <button
-              id="header-settings-btn-mobile"
-              onClick={onOpenSettings}
-              className="p-2 rounded-xl bg-neutral-800 text-neutral-300 hover:text-neutral-100 text-xs"
-              title="إعدادات مساحة الرسم"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-          )}
           {onToggleLockCanvas && (
             <button
               id="header-lock-canvas-btn-mobile"
