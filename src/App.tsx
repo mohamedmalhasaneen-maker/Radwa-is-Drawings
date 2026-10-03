@@ -10,6 +10,7 @@ import {
   BlendModeType
 } from './types';
 import { BRUSH_PRESETS } from './utils/brushPresets';
+
 import { 
   saveProjectToDB, 
   getProjectFromDB, 
@@ -26,6 +27,7 @@ import { LineArtModal } from './components/LineArtModal';
 import { ProjectModal } from './components/ProjectModal';
 import { ExportModal } from './components/ExportModal';
 import { ShortcutsModal } from './components/ShortcutsModal';
+import { ResizeCanvasModal } from './components/ResizeCanvasModal';
 import { 
   Sparkles, 
   CheckCircle2, 
@@ -88,6 +90,7 @@ export default function App() {
   const [showGrid, setShowGrid] = useState<boolean>(false);
   const [showRulers, setShowRulers] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [isCanvasLocked, setIsCanvasLocked] = useState<boolean>(false);
 
   // Layers state
   const [layers, setLayers] = useState<Layer[]>([]);
@@ -125,6 +128,9 @@ export default function App() {
   const [projectModalMode, setProjectModalMode] = useState<'new' | 'open'>('new');
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState<boolean>(false);
+  const [showResizeModal, setShowResizeModal] = useState<boolean>(false);
+
+
 
   // Notifications Toast
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -139,6 +145,19 @@ export default function App() {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3800);
   }, []);
+
+  const handleToggleLockCanvas = useCallback(() => {
+    setIsCanvasLocked((prev) => {
+      const next = !prev;
+      addToast(
+        next
+          ? '🔒 تم تثبيت الورقة: تم إيقاف التكبير والتصغير والتحريك لمنع حركة مساحة الرسم أثناء العمل'
+          : '🔓 تم إلغاء تثبيت الورقة: يمكنك الآن تكبير وتصغير وتحريك مساحة العمل بحرية',
+        next ? 'info' : 'success'
+      );
+      return next;
+    });
+  }, [addToast]);
 
   // Helper to create a new canvas backing store
   const createCanvasBuffer = (w: number, h: number): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } => {
@@ -252,26 +271,56 @@ export default function App() {
     return () => window.removeEventListener('resize', checkMobile);
   }, [initProject]);
 
+  // Maintain custom tool settings so switching tools doesn't reset user modifications
+  const toolCustomSettings = useRef<{
+    eraser: Partial<BrushSettings>;
+    charcoal_eraser: Partial<BrushSettings>;
+  }>({
+    eraser: { size: 25, hardness: 0.8, opacity: 1.0, flow: 1.0 },
+    charcoal_eraser: { size: 28, opacity: 0.5, hardness: 0.4, texture: 0.65, flow: 0.5 },
+  });
+
+  const handleUpdateBrushSettings = useCallback((patch: Partial<BrushSettings>) => {
+    setBrushSettings((prev) => {
+      const targetId = patch.id || prev.id;
+      if (targetId === 'eraser') {
+        toolCustomSettings.current.eraser = { ...toolCustomSettings.current.eraser, ...patch };
+      } else if (targetId === 'charcoal_eraser') {
+        toolCustomSettings.current.charcoal_eraser = { ...toolCustomSettings.current.charcoal_eraser, ...patch };
+      }
+      return { ...prev, ...patch };
+    });
+  }, []);
+
   // Handle Tool Selection with auto-preset adaptation
   const handleSelectTool = useCallback((tool: ToolType) => {
     setActiveTool(tool);
     if (tool === 'eraser') {
       setBrushSettings((prev) => ({
-        ...BRUSH_PRESETS.eraser,
-        size: prev.id === 'eraser' ? prev.size : Math.max(16, prev.size),
+        ...(prev.id === 'eraser' ? prev : BRUSH_PRESETS.eraser),
+        ...toolCustomSettings.current.eraser,
+        id: 'eraser',
+      }));
+    } else if (tool === 'charcoal_eraser') {
+      setBrushSettings((prev) => ({
+        ...(prev.id === 'charcoal_eraser' ? prev : BRUSH_PRESETS.charcoal_eraser),
+        ...toolCustomSettings.current.charcoal_eraser,
+        id: 'charcoal_eraser',
       }));
     } else if (tool === 'pencil') {
-      setBrushSettings(BRUSH_PRESETS.pencil_standard);
+      setBrushSettings((prev) => (prev.id === 'pencil_standard' ? prev : BRUSH_PRESETS.pencil_standard));
     } else if (tool === 'ink') {
-      setBrushSettings(BRUSH_PRESETS.ink_pen);
+      setBrushSettings((prev) => (prev.id === 'ink_pen' ? prev : BRUSH_PRESETS.ink_pen));
     } else if (tool === 'brush') {
-      setBrushSettings(BRUSH_PRESETS.soft_brush);
+      setBrushSettings((prev) => (prev.category === 'فراشي تلوين' ? prev : BRUSH_PRESETS.soft_brush));
     }
   }, []);
 
   // Snapshot all layers with complete attributes and image raster data
   const snapshotLayers = useCallback(
-    (targetLayers: Layer[]): LayerSnapshot[] => {
+    (targetLayers: Layer[], customW?: number, customH?: number): LayerSnapshot[] => {
+      const w = customW !== undefined ? customW : canvasWidth;
+      const h = customH !== undefined ? customH : canvasHeight;
       return targetLayers.map((l) => ({
         layerId: l.id,
         name: l.name,
@@ -279,7 +328,7 @@ export default function App() {
         locked: l.locked,
         opacity: l.opacity,
         blendMode: l.blendMode,
-        imageData: l.ctx.getImageData(0, 0, canvasWidth, canvasHeight),
+        imageData: l.ctx.getImageData(0, 0, w, h),
       }));
     },
     [canvasWidth, canvasHeight]
@@ -289,6 +338,15 @@ export default function App() {
   const restoreHistoryStep = useCallback(
     (step: HistoryStep) => {
       const current = layersRef.current;
+      
+      const targetWidth = step.canvasWidth || canvasWidth;
+      const targetHeight = step.canvasHeight || canvasHeight;
+
+      if (step.canvasWidth && step.canvasHeight) {
+        setCanvasWidth(step.canvasWidth);
+        setCanvasHeight(step.canvasHeight);
+      }
+
       const restoredLayers: Layer[] = step.layersSnapshots.map((snap) => {
         const existing = current.find((l) => l.id === snap.layerId);
         let canvas: HTMLCanvasElement;
@@ -297,10 +355,14 @@ export default function App() {
         if (existing) {
           canvas = existing.canvas;
           ctx = existing.ctx;
-          ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+          if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+          }
+          ctx.clearRect(0, 0, targetWidth, targetHeight);
           ctx.putImageData(snap.imageData, 0, 0);
         } else {
-          const buffer = createCanvasBuffer(canvasWidth, canvasHeight);
+          const buffer = createCanvasBuffer(targetWidth, targetHeight);
           canvas = buffer.canvas;
           ctx = buffer.ctx;
           ctx.putImageData(snap.imageData, 0, 0);
@@ -326,11 +388,17 @@ export default function App() {
 
   // History Commit after each stroke or modification
   const handleHistoryCommit = useCallback(
-    (description: string, customLayers?: Layer[], customActiveId?: string) => {
+    (
+      description: string, 
+      customLayers?: Layer[], 
+      customActiveId?: string,
+      customW?: number,
+      customH?: number
+    ) => {
       const activeLayers = customLayers || layersRef.current;
       const targetActiveId = customActiveId || activeLayerIdRef.current;
 
-      const newSnapshots = snapshotLayers(activeLayers);
+      const newSnapshots = snapshotLayers(activeLayers, customW, customH);
 
       // Truncate any redo steps
       const newStack = historyStack.current.slice(0, historyIndex.current + 1);
@@ -345,6 +413,8 @@ export default function App() {
         description,
         layersSnapshots: newSnapshots,
         activeLayerId: targetActiveId,
+        canvasWidth: customW !== undefined ? customW : canvasWidth,
+        canvasHeight: customH !== undefined ? customH : canvasHeight,
       });
 
       historyStack.current = newStack;
@@ -353,8 +423,94 @@ export default function App() {
       setCanUndo(historyIndex.current > 0);
       setCanRedo(false);
     },
-    [snapshotLayers]
+    [snapshotLayers, canvasWidth, canvasHeight]
   );
+
+  // Resize canvas dimensions dynamically without losing progress
+  const handleResizeCanvas = useCallback((
+    newW: number,
+    newH: number,
+    newDpi: number,
+    newBgColor: string,
+    transparent: boolean,
+    scaleContent: boolean,
+    anchor: 'center' | 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right'
+  ) => {
+    // 1. Update general settings
+    setCanvasWidth(newW);
+    setCanvasHeight(newH);
+    setDpi(newDpi);
+    setBackgroundColor(newBgColor);
+    setHasTransparentBg(transparent);
+
+    // 2. Map and resize all layers
+    const updatedLayers = layers.map((layer) => {
+      const { canvas: newCanvas, ctx: newCtx } = createCanvasBuffer(newW, newH);
+      
+      let dx = 0;
+      let dy = 0;
+
+      if (!scaleContent) {
+        const dw = newW - canvasWidth;
+        const dh = newH - canvasHeight;
+
+        if (anchor === 'center') {
+          dx = dw / 2;
+          dy = dh / 2;
+        } else if (anchor === 'top-center') {
+          dx = dw / 2;
+          dy = 0;
+        } else if (anchor === 'top-right') {
+          dx = dw;
+          dy = 0;
+        } else if (anchor === 'bottom-left') {
+          dx = 0;
+          dy = dh;
+        } else if (anchor === 'bottom-center') {
+          dx = dw / 2;
+          dy = dh;
+        } else if (anchor === 'bottom-right') {
+          dx = dw;
+          dy = dh;
+        }
+
+        newCtx.drawImage(layer.canvas, dx, dy);
+      } else {
+        newCtx.drawImage(layer.canvas, 0, 0, newW, newH);
+      }
+
+      return {
+        ...layer,
+        canvas: newCanvas,
+        ctx: newCtx,
+      };
+    });
+
+    setLayers(updatedLayers);
+
+    // 3. Add to History
+    handleHistoryCommit(
+      `تغيير أبعاد الرسم إلى ${newW} × ${newH}`,
+      updatedLayers,
+      activeLayerId,
+      newW,
+      newH
+    );
+
+    // 4. Center and fit canvas in viewport
+    const fitZoom = Math.min(
+      (window.innerWidth - 380) / newW,
+      (window.innerHeight - 150) / newH
+    );
+    setTransform((prev) => ({
+      ...prev,
+      zoom: Math.max(0.15, Math.min(1.5, fitZoom > 0 ? fitZoom : 0.65)),
+      panX: 0,
+      panY: 0,
+    }));
+
+    addToast(`تم تعديل أبعاد اللوحة إلى ${newW} × ${newH} بكسل بنجاح`, 'success');
+  }, [layers, canvasWidth, canvasHeight, activeLayerId, handleHistoryCommit, addToast]);
 
   // Undo Handler
   const handleUndo = useCallback(() => {
@@ -968,6 +1124,8 @@ export default function App() {
           handleSelectTool('pencil');
         } else if (k === 'n') {
           handleSelectTool('ink');
+        } else if (k === 'c') {
+          handleSelectTool('charcoal_eraser');
         } else if (k === 'e') {
           handleSelectTool('eraser');
         } else if (k === 'g') {
@@ -976,13 +1134,15 @@ export default function App() {
           handleSelectTool('eyedropper');
         } else if (k === 'v') {
           handleSelectTool('move');
+        } else if (k === 'l') {
+          handleToggleLockCanvas();
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleUndo, handleRedo, isFullScreen, handleToggleFullScreen, handleSaveProject, handleSelectTool]);
+  }, [handleUndo, handleRedo, isFullScreen, handleToggleFullScreen, handleSaveProject, handleSelectTool, handleToggleLockCanvas]);
 
   // Drag and drop onto app window
   const handleDragOver = (e: React.DragEvent) => {
@@ -1016,9 +1176,22 @@ export default function App() {
         onUndo={handleUndo}
         onRedo={handleRedo}
         transform={transform}
-        onTransformChange={setTransform}
-        onResetView={() => setTransform({ ...transform, zoom: 1.0, panX: 0, panY: 0, rotation: 0 })}
+        onTransformChange={(newT) => {
+          if (isCanvasLocked) return;
+          setTransform(newT);
+        }}
+        onResetView={() => {
+          if (isCanvasLocked) {
+            addToast('الورقة مثبتة ومقفلة. قم بإلغاء القفل أولاً لإعادة ضبط العرض.', 'info');
+            return;
+          }
+          setTransform({ ...transform, zoom: 1.0, panX: 0, panY: 0, rotation: 0 });
+        }}
         onFitToScreen={() => {
+          if (isCanvasLocked) {
+            addToast('الورقة مثبتة ومقفلة. قم بإلغاء القفل أولاً للملاءمة للشاشة.', 'info');
+            return;
+          }
           const fit = Math.min((window.innerWidth - 380) / canvasWidth, (window.innerHeight - 150) / canvasHeight);
           setTransform({ ...transform, zoom: Math.max(0.1, fit), panX: 0, panY: 0 });
         }}
@@ -1046,6 +1219,11 @@ export default function App() {
         onToggleSidePanel={(p) => setActiveSidePanel(activeSidePanel === p ? null : p)}
         isFullScreen={isFullScreen}
         onToggleFullScreen={handleToggleFullScreen}
+        canvasWidth={canvasWidth}
+        canvasHeight={canvasHeight}
+        onOpenResizeModal={() => setShowResizeModal(true)}
+        isCanvasLocked={isCanvasLocked}
+        onToggleLockCanvas={handleToggleLockCanvas}
       />
 
       {/* Main Workspace Layout */}
@@ -1058,7 +1236,7 @@ export default function App() {
             shapeOptions={shapeOptions}
             onUpdateShapeOptions={setShapeOptions}
             brushSettings={brushSettings}
-            onUpdateBrushSettings={(patch) => setBrushSettings((prev) => ({ ...prev, ...patch }))}
+            onUpdateBrushSettings={handleUpdateBrushSettings}
             onOpenLineArtModal={() => setShowLineArtModal(true)}
             onOpenImageUpload={handleOpenImageUpload}
             onClearPage={handleClearPage}
@@ -1080,13 +1258,18 @@ export default function App() {
             isLayerIsolation={isLayerIsolation}
             onShowAllLayers={handleShowAllLayers}
             transform={transform}
-            onTransformChange={setTransform}
+            onTransformChange={(newT) => {
+              if (isCanvasLocked) return;
+              setTransform(newT);
+            }}
             onColorPick={handleColorChange}
             onHistoryCommit={handleHistoryCommit}
             showGrid={showGrid}
             showRulers={showRulers}
             shapeOptions={shapeOptions}
             isDarkMode={isDarkMode}
+            onShowToast={addToast}
+            isCanvasLocked={isCanvasLocked}
           />
 
           {/* Floating Exit Fullscreen Button in Full-Screen Mode */}
@@ -1095,10 +1278,10 @@ export default function App() {
               <button
                 id="exit-fullscreen-btn"
                 onClick={handleToggleFullScreen}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-neutral-900/95 hover:bg-neutral-850 text-neutral-100 border border-neutral-700/80 shadow-2xl backdrop-blur transition-all text-xs font-semibold hover:text-amber-400 group"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-neutral-900/95 hover:bg-neutral-850 text-neutral-100 border border-neutral-700/80 shadow-2xl backdrop-blur transition-all text-xs font-semibold hover:text-blue-400 group"
                 title="الخروج من وضع ملء الشاشة (Esc أو F)"
               >
-                <Minimize2 className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+                <Minimize2 className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
                 <span>الخروج من ملء الشاشة</span>
                 <kbd className="px-1.5 py-0.5 rounded bg-neutral-800 text-[10px] text-neutral-400 border border-neutral-700">Esc</kbd>
               </button>
@@ -1117,8 +1300,8 @@ export default function App() {
                 onClick={() => setActiveSidePanel(activeSidePanel ? null : 'brushes')}
                 className={`p-2 rounded-xl transition-all mb-1 border ${
                   activeSidePanel
-                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-400 hover:bg-amber-500/30'
-                    : 'border-transparent text-neutral-400 hover:text-amber-400 hover:bg-neutral-850'
+                    ? 'bg-blue-500/20 border-blue-500/40 text-blue-400 hover:bg-blue-500/30'
+                    : 'border-transparent text-neutral-400 hover:text-blue-400 hover:bg-neutral-850'
                 }`}
                 title={activeSidePanel ? 'طي وإدخال اللوحة الجانبية (إخفاء)' : 'إظهار اللوحة الجانبية'}
               >
@@ -1135,7 +1318,7 @@ export default function App() {
                 id="strip-brushes-btn"
                 onClick={() => setActiveSidePanel(activeSidePanel === 'brushes' ? null : 'brushes')}
                 className={`p-2.5 rounded-xl transition-all ${
-                  activeSidePanel === 'brushes' ? 'bg-amber-500 text-neutral-950 font-bold' : 'hover:bg-neutral-850 hover:text-neutral-200'
+                  activeSidePanel === 'brushes' ? 'bg-blue-600 text-white font-bold' : 'hover:bg-neutral-850 hover:text-neutral-200'
                 }`}
                 title="لوحة الفرش"
               >
@@ -1145,7 +1328,7 @@ export default function App() {
                 id="strip-colors-btn"
                 onClick={() => setActiveSidePanel(activeSidePanel === 'colors' ? null : 'colors')}
                 className={`p-2.5 rounded-xl transition-all ${
-                  activeSidePanel === 'colors' ? 'bg-amber-500 text-neutral-950 font-bold' : 'hover:bg-neutral-850 hover:text-neutral-200'
+                  activeSidePanel === 'colors' ? 'bg-blue-600 text-white font-bold' : 'hover:bg-neutral-850 hover:text-neutral-200'
                 }`}
                 title="لوحة الألوان"
               >
@@ -1155,7 +1338,7 @@ export default function App() {
                 id="strip-layers-btn"
                 onClick={() => setActiveSidePanel(activeSidePanel === 'layers' ? null : 'layers')}
                 className={`p-2.5 rounded-xl transition-all ${
-                  activeSidePanel === 'layers' ? 'bg-amber-500 text-neutral-950 font-bold' : 'hover:bg-neutral-850 hover:text-neutral-200'
+                  activeSidePanel === 'layers' ? 'bg-blue-600 text-white font-bold' : 'hover:bg-neutral-850 hover:text-neutral-200'
                 }`}
                 title="لوحة الطبقات"
               >
@@ -1168,7 +1351,7 @@ export default function App() {
               <BrushPanel
                 currentBrush={brushSettings}
                 onSelectBrush={setBrushSettings}
-                onUpdateBrushSettings={(patch) => setBrushSettings((prev) => ({ ...prev, ...patch }))}
+                onUpdateBrushSettings={handleUpdateBrushSettings}
                 currentColor={currentColor}
                 onClose={() => setActiveSidePanel(null)}
                 isPinned={isSidePanelPinned}
@@ -1276,7 +1459,7 @@ export default function App() {
                         setBrushSettings(b);
                         if (!isSidePanelPinned) setActiveSidePanel(null);
                       }}
-                      onUpdateBrushSettings={(patch) => setBrushSettings((prev) => ({ ...prev, ...patch }))}
+                      onUpdateBrushSettings={handleUpdateBrushSettings}
                       currentColor={currentColor}
                       isPinned={isSidePanelPinned}
                       onTogglePin={handleTogglePin}
@@ -1362,7 +1545,7 @@ export default function App() {
           shapeOptions={shapeOptions}
           onUpdateShapeOptions={setShapeOptions}
           brushSettings={brushSettings}
-          onUpdateBrushSettings={(patch) => setBrushSettings((prev) => ({ ...prev, ...patch }))}
+          onUpdateBrushSettings={handleUpdateBrushSettings}
           onOpenLineArtModal={() => setShowLineArtModal(true)}
           onOpenImageUpload={handleOpenImageUpload}
           onClearPage={handleClearPage}
@@ -1379,6 +1562,7 @@ export default function App() {
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) handleImageFile(file);
+          e.target.value = '';
           setTimeout(() => {
             const wasFs = sessionStorage.getItem('was_fullscreen_before_upload') === 'true';
             if (wasFs || isFullScreen || !!document.fullscreenElement) {
@@ -1427,6 +1611,17 @@ export default function App() {
         onClose={() => setShowShortcutsModal(false)}
       />
 
+      <ResizeCanvasModal
+        isOpen={showResizeModal}
+        onClose={() => setShowResizeModal(false)}
+        currentWidth={canvasWidth}
+        currentHeight={canvasHeight}
+        currentDpi={dpi}
+        currentBgColor={backgroundColor}
+        currentTransparentBg={hasTransparentBg}
+        onResize={handleResizeCanvas}
+      />
+
       {/* Arabic Toast Notifications Toast Stack */}
       <div 
         id="app-toasts-container"
@@ -1446,7 +1641,7 @@ export default function App() {
             {toast.type === 'error' ? (
               <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
             ) : toast.type === 'info' ? (
-              <Info className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <Info className="w-4 h-4 text-blue-400 flex-shrink-0" />
             ) : (
               <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
             )}

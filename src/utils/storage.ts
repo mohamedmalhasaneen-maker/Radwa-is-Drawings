@@ -107,9 +107,33 @@ export function loadSavedPreferences() {
     const customPalette = JSON.parse(localStorage.getItem('rassam_custom_palette') || '[]');
     const lastProjectId = localStorage.getItem('rassam_last_project_id');
     const isSidePanelPinned = localStorage.getItem('rassam_sidepanel_pinned') === 'true';
-    return { theme, recentColors, customPalette, lastProjectId, isSidePanelPinned };
+    const showRulers = localStorage.getItem('rassam_show_rulers') === 'true';
+    const rulerUnit = (localStorage.getItem('rassam_ruler_unit') as any) || 'px';
+    const showGuides = localStorage.getItem('rassam_show_guides') !== 'false';
+    const showRulerCursor = localStorage.getItem('rassam_show_ruler_cursor') !== 'false';
+    return { 
+      theme, 
+      recentColors, 
+      customPalette, 
+      lastProjectId, 
+      isSidePanelPinned,
+      showRulers,
+      rulerUnit,
+      showGuides,
+      showRulerCursor
+    };
   } catch (e) {
-    return { theme: 'dark', recentColors: [], customPalette: [], lastProjectId: null, isSidePanelPinned: false };
+    return { 
+      theme: 'dark', 
+      recentColors: [], 
+      customPalette: [], 
+      lastProjectId: null, 
+      isSidePanelPinned: false,
+      showRulers: false,
+      rulerUnit: 'px',
+      showGuides: true,
+      showRulerCursor: true
+    };
   }
 }
 
@@ -119,6 +143,10 @@ export function savePreferences(prefs: {
   customPalette?: string[];
   lastProjectId?: string;
   isSidePanelPinned?: boolean;
+  showRulers?: boolean;
+  rulerUnit?: string;
+  showGuides?: boolean;
+  showRulerCursor?: boolean;
 }) {
   try {
     if (prefs.theme) localStorage.setItem('rassam_theme', prefs.theme);
@@ -127,6 +155,18 @@ export function savePreferences(prefs: {
     if (prefs.lastProjectId) localStorage.setItem('rassam_last_project_id', prefs.lastProjectId);
     if (prefs.isSidePanelPinned !== undefined) {
       localStorage.setItem('rassam_sidepanel_pinned', String(prefs.isSidePanelPinned));
+    }
+    if (prefs.showRulers !== undefined) {
+      localStorage.setItem('rassam_show_rulers', String(prefs.showRulers));
+    }
+    if (prefs.rulerUnit) {
+      localStorage.setItem('rassam_ruler_unit', prefs.rulerUnit);
+    }
+    if (prefs.showGuides !== undefined) {
+      localStorage.setItem('rassam_show_guides', String(prefs.showGuides));
+    }
+    if (prefs.showRulerCursor !== undefined) {
+      localStorage.setItem('rassam_show_ruler_cursor', String(prefs.showRulerCursor));
     }
   } catch (e) {
     // Ignore quota issues

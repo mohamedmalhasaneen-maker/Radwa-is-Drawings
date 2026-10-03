@@ -132,7 +132,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                 tab === 'new'
-                  ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/20'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
                   : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800'
               }`}
             >
@@ -147,7 +147,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                 tab === 'open'
-                  ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/20'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
                   : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800'
               }`}
             >
@@ -178,7 +178,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="أدخل اسم المشروع"
-                className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-neutral-100 text-sm outline-none focus:border-amber-500"
+                className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-neutral-100 text-sm outline-none focus:border-blue-500"
               />
             </div>
 
@@ -197,7 +197,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                     }}
                     className={`p-2.5 rounded-xl border text-right transition-colors cursor-pointer ${
                       width === pr.w && height === pr.h
-                        ? 'border-amber-500 bg-amber-500/10 text-amber-300 font-bold'
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-300 font-bold'
                         : 'border-neutral-800 bg-neutral-950/40 hover:bg-neutral-800 text-neutral-300'
                     }`}
                   >
@@ -218,7 +218,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   type="number"
                   value={width}
                   onChange={(e) => setWidth(Math.max(100, Math.min(8000, Number(e.target.value))))}
-                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-2.5 font-mono text-neutral-100 outline-none focus:border-amber-500"
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-2.5 font-mono text-neutral-100 outline-none focus:border-blue-500"
                 />
               </div>
               <div className="space-y-1">
@@ -227,7 +227,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   type="number"
                   value={height}
                   onChange={(e) => setHeight(Math.max(100, Math.min(8000, Number(e.target.value))))}
-                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-2.5 font-mono text-neutral-100 outline-none focus:border-amber-500"
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-2.5 font-mono text-neutral-100 outline-none focus:border-blue-500"
                 />
               </div>
               <div className="space-y-1">
@@ -236,7 +236,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   type="number"
                   value={dpi}
                   onChange={(e) => setDpi(Number(e.target.value))}
-                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-2.5 font-mono text-neutral-100 outline-none focus:border-amber-500"
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl p-2.5 font-mono text-neutral-100 outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -250,7 +250,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   onClick={() => setBgChoice('white')}
                   className={`p-2 rounded-xl border flex items-center justify-center gap-2 cursor-pointer ${
                     bgChoice === 'white'
-                      ? 'border-amber-500 bg-amber-500/10 text-amber-300 font-bold'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-300 font-bold'
                       : 'border-neutral-800 bg-neutral-950/40 text-neutral-300'
                   }`}
                 >
@@ -262,7 +262,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   onClick={() => setBgChoice('black')}
                   className={`p-2 rounded-xl border flex items-center justify-center gap-2 cursor-pointer ${
                     bgChoice === 'black'
-                      ? 'border-amber-500 bg-amber-500/10 text-amber-300 font-bold'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-300 font-bold'
                       : 'border-neutral-800 bg-neutral-950/40 text-neutral-300'
                   }`}
                 >
@@ -274,7 +274,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                   onClick={() => setBgChoice('transparent')}
                   className={`p-2 rounded-xl border flex items-center justify-center gap-2 cursor-pointer ${
                     bgChoice === 'transparent'
-                      ? 'border-amber-500 bg-amber-500/10 text-amber-300 font-bold'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-300 font-bold'
                       : 'border-neutral-800 bg-neutral-950/40 text-neutral-300'
                   }`}
                 >
@@ -301,7 +301,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
           <div className="p-6 overflow-y-auto flex-1 min-h-[350px]">
             {isLoadingProjects ? (
               <div className="flex items-center justify-center h-48 text-neutral-400">
-                <Loader2 className="w-5 h-5 animate-spin text-amber-400 ml-2" />
+                <Loader2 className="w-5 h-5 animate-spin text-blue-400 ml-2" />
                 <span>جاري تحميل المشاريع...</span>
               </div>
             ) : savedProjects.length === 0 ? (
@@ -322,7 +322,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
                       onOpenProject(p.id);
                       onClose();
                     }}
-                    className="group relative flex items-center gap-3 p-3 bg-neutral-950/60 border border-neutral-800 hover:border-amber-500/70 rounded-xl cursor-pointer transition-all shadow-md"
+                    className="group relative flex items-center gap-3 p-3 bg-neutral-950/60 border border-neutral-800 hover:border-blue-500/70 rounded-xl cursor-pointer transition-all shadow-md"
                   >
                     {/* Thumbnail */}
                     <div className="w-16 h-16 bg-neutral-900 rounded-lg overflow-hidden border border-neutral-800 flex items-center justify-center flex-shrink-0">
@@ -335,7 +335,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
 
                     {/* Metadata */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-bold text-neutral-200 group-hover:text-amber-400 truncate">
+                      <h4 className="text-xs font-bold text-neutral-200 group-hover:text-blue-400 truncate">
                         {p.title}
                       </h4>
                       <span className="text-[11px] text-neutral-400 block font-mono mt-0.5">
@@ -383,7 +383,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
           {tab === 'new' && (
             <button
               onClick={handleCreate}
-              className="flex items-center gap-2 px-6 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-6 py-2 rounded-xl bg-blue-500 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-500/20 transition-all cursor-pointer"
             >
               <Check className="w-4 h-4" />
               <span>إنشاء مساحة الرسم</span>

@@ -102,7 +102,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
       {/* Panel Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 bg-neutral-950/40">
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-amber-400" />
+          <Layers className="w-4 h-4 text-blue-400" />
           <span className="font-bold text-sm text-neutral-200">لوحة الطبقات</span>
         </div>
         <div className="flex items-center gap-2">
@@ -126,8 +126,8 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
       <div className="px-3 py-2.5 border-b border-neutral-800 bg-neutral-950/70 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
           {isLayerIsolation ? (
-            <div className="flex items-center gap-1.5 text-amber-400 font-semibold text-[11px] truncate">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
+            <div className="flex items-center gap-1.5 text-blue-400 font-semibold text-[11px] truncate">
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse flex-shrink-0" />
               <span className="truncate">وضع عزل الطبقة نشط</span>
             </div>
           ) : (
@@ -155,7 +155,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
             className="px-2.5 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-300 hover:text-neutral-100 border border-neutral-700 text-[11px] font-medium flex items-center gap-1 transition-all active:scale-95 whitespace-nowrap cursor-pointer"
             title="عزل الطبقة المحددة وعرض محتواها فقط على اللوحة"
           >
-            <SquareDashed className="w-3.5 h-3.5 text-amber-400" />
+            <SquareDashed className="w-3.5 h-3.5 text-blue-400" />
             <span>عزل الطبقة</span>
           </button>
         )}
@@ -186,7 +186,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
               <label htmlFor="layer-opacity-slider" className="text-neutral-400 cursor-pointer">
                 شفافية الطبقة المحددة:
               </label>
-              <span id="active-layer-opacity-value" className="text-amber-400 font-mono font-bold">
+              <span id="active-layer-opacity-value" className="text-blue-400 font-mono font-bold">
                 {activeLayer.opacity}%
               </span>
             </div>
@@ -201,7 +201,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
               onMouseUp={() => onCommitOpacityChange?.()}
               onTouchEnd={() => onCommitOpacityChange?.()}
               onKeyUp={() => onCommitOpacityChange?.()}
-              className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+              className="w-full accent-blue-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
             />
           </div>
         </div>
@@ -220,7 +220,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
               onClick={() => onSelectLayer(layer.id)}
               className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
                 isSelected
-                  ? 'border-amber-500 bg-amber-500/15 text-amber-200 shadow-sm shadow-amber-500/10'
+                  ? 'border-blue-500 bg-blue-500/15 text-blue-200 shadow-sm shadow-blue-500/10'
                   : 'border-neutral-800/80 bg-neutral-850 hover:bg-neutral-800 text-neutral-300'
               }`}
             >
@@ -246,7 +246,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
                     onToggleLock(layer.id);
                   }}
                   className={`p-1 rounded hover:bg-neutral-700 transition-colors cursor-pointer ${
-                    layer.locked ? 'text-amber-400' : 'text-neutral-500'
+                    layer.locked ? 'text-blue-400' : 'text-neutral-500'
                   }`}
                   title={layer.locked ? 'فتح قفل الطبقة' : 'قفل الطبقة'}
                 >
@@ -268,7 +268,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
                         if (e.key === 'Escape') setEditingId(null);
                       }}
                       autoFocus
-                      className="bg-neutral-900 border border-amber-500 px-1.5 py-0.5 rounded text-xs text-neutral-100 outline-none w-full"
+                      className="bg-neutral-900 border border-blue-500 px-1.5 py-0.5 rounded text-xs text-neutral-100 outline-none w-full"
                     />
                     <button
                       onClick={() => handleCommitRename(layer.id)}
@@ -289,7 +289,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
 
                 {/* Badge if isolated */}
                 {isSelected && isLayerIsolation && (
-                  <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30 whitespace-nowrap">
+                  <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-500/30 whitespace-nowrap">
                     معزولة
                   </span>
                 )}
@@ -333,7 +333,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
           <button
             id="layer-add-btn"
             onClick={onAddLayer}
-            className="p-2 rounded-lg bg-amber-500 text-neutral-950 font-bold hover:bg-amber-400 shadow-md shadow-amber-500/20 transition-all cursor-pointer active:scale-95"
+            className="p-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-400 shadow-md shadow-blue-500/20 transition-all cursor-pointer active:scale-95"
             title="إنشاء طبقة جديدة"
           >
             <Plus className="w-4 h-4" />

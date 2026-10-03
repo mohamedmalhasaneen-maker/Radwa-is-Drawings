@@ -3,6 +3,7 @@ export type ToolType =
   | 'pencil'
   | 'ink'
   | 'eraser'
+  | 'charcoal_eraser'
   | 'line'
   | 'arrow'
   | 'double_arrow'
@@ -48,6 +49,26 @@ export type BrushPresetId =
   | 'pencil_standard'
   | 'pencil_hb'
   | 'pencil_mech'
+  | 'pencil_9h'
+  | 'pencil_8h'
+  | 'pencil_7h'
+  | 'pencil_6h'
+  | 'pencil_5h'
+  | 'pencil_4h'
+  | 'pencil_3h'
+  | 'pencil_2h'
+  | 'pencil_h'
+  | 'pencil_f'
+  | 'pencil_hb_grad'
+  | 'pencil_b'
+  | 'pencil_2b'
+  | 'pencil_3b'
+  | 'pencil_4b'
+  | 'pencil_5b'
+  | 'pencil_6b'
+  | 'pencil_7b'
+  | 'pencil_8b'
+  | 'pencil_9b'
   | 'ink_pen'
   | 'fine_liner'
   | 'highlighter'
@@ -66,17 +87,20 @@ export type BrushPresetId =
   | 'crayon'
   | 'spray'
   | 'textured'
+  | 'glow_light'
+  | 'laser'
   | 'smudge'
   | 'blur'
   | 'pixel'
-  | 'eraser';
+  | 'eraser'
+  | 'charcoal_eraser';
 
 export interface BrushSettings {
   id: BrushPresetId;
   name: string;
-  category: 'رصاص وتخطيط' | 'أحبار وخطوط' | 'فراشي تلوين' | 'فحم وباستيل' | 'تأثيرات وبكسل';
+  category: 'رصاص وتخطيط' | 'أحبار وخطوط' | 'فراشي تلوين' | 'فحم وباستيل' | 'تأثيرات وبكسل' | '✏️ أقلام الجرافيت';
   description: string;
-  size: number;              // 1 - 250
+  size: number;              // 1 - 500
   opacity: number;           // 0.01 - 1.0
   flow: number;              // 0.01 - 1.0
   hardness: number;          // 0.0 - 1.0
@@ -86,6 +110,9 @@ export interface BrushSettings {
   pressureOpacity: boolean;  // Stylus pressure affects opacity
   angle: number;             // Angle for calligraphy nibs (0 - 180)
   scatter: number;           // Scatter for spray & texture (0 - 50)
+  texture?: number;          // Grain and tooth texture for charcoal/kneaded eraser (0.0 - 1.0)
+  glowAmount?: number;       // Glow halo intensity (0.0 - 1.0)
+  buildUp?: number;          // Flow accumulation rate (0.0 - 1.0)
   blendMode?: GlobalCompositeOperation;
 }
 
@@ -239,6 +266,8 @@ export interface HistoryStep {
   description: string;
   layersSnapshots: LayerSnapshot[];
   activeLayerId: string;
+  canvasWidth?: number;
+  canvasHeight?: number;
 }
 
 export interface ColorPalette {

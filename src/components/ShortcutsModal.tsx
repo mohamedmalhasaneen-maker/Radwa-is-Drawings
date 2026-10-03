@@ -20,10 +20,12 @@ export const ShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, onClose 
     { key: 'B', desc: 'تفعيل الفرشاة' },
     { key: 'P', desc: 'تفعيل قلم الرصاص' },
     { key: 'N', desc: 'تفعيل قلم الحبر' },
-    { key: 'E', desc: 'تفعيل الممحاة' },
+    { key: 'C', desc: '🧽 استيكة الفحم (تفتيح تدريجي وإضاءات)' },
+    { key: 'E', desc: 'تفعيل الممحاة العادية (مسح كلي)' },
     { key: 'G', desc: 'دلو التعبئة اللونية' },
     { key: 'I', desc: 'أداة قطّارة الألوان' },
     { key: 'V', desc: 'أداة التحريك والملاحة' },
+    { key: 'L', desc: 'تثبيت الورقة / إلغاء القفل (منع التحريك والتكبير)' },
     { key: 'عجلة الماوس', desc: 'تكبير وتصغير مساحة الرسم' },
     { key: 'Space + سحب', desc: 'سحب وتحريك مساحة العمل' },
     { key: 'لمس بإصبعين', desc: 'تكبير وتصغير الشاشة باللمس' },
@@ -41,7 +43,7 @@ export const ShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, onClose 
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800 bg-neutral-950/60">
           <div className="flex items-center gap-2">
-            <Keyboard className="w-5 h-5 text-amber-400" />
+            <Keyboard className="w-5 h-5 text-blue-400" />
             <h3 className="font-bold text-sm text-neutral-100">اختصارات لوحة المفاتيح واللمس</h3>
           </div>
           <button
@@ -60,7 +62,7 @@ export const ShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, onClose 
                 className="flex items-center justify-between p-2.5 bg-neutral-950/40 border border-neutral-800/80 rounded-xl"
               >
                 <span className="text-neutral-300">{sc.desc}</span>
-                <kbd className="px-2 py-0.5 bg-neutral-800 text-amber-400 font-mono text-[11px] rounded border border-neutral-700">
+                <kbd className="px-2 py-0.5 bg-neutral-800 text-blue-400 font-mono text-[11px] rounded border border-neutral-700">
                   {sc.key}
                 </kbd>
               </div>
@@ -71,7 +73,7 @@ export const ShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, onClose 
         <div className="flex justify-end px-6 py-3 border-t border-neutral-800 bg-neutral-950/80">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs"
+            className="px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-500 text-white font-bold text-xs"
           >
             حسناً، فهمت
           </button>

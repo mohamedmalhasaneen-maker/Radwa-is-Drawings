@@ -64,10 +64,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 }) => {
   const [showShapesMenu, setShowShapesMenu] = useState<boolean>(false);
   const [showEraserMenu, setShowEraserMenu] = useState<boolean>(false);
+  const [showCharcoalEraserMenu, setShowCharcoalEraserMenu] = useState<boolean>(false);
   const [selectedShapeCategory, setSelectedShapeCategory] = useState<string>('الكل');
 
   const isShapeToolActive = isShapeTool(activeTool);
   const currentEraserSize = brushSettings?.size ?? 25;
+  const currentCharcoalEraserSize = brushSettings?.size ?? 28;
+  const currentCharcoalEraserOpacity = brushSettings?.opacity ?? 0.5;
+  const currentCharcoalEraserHardness = brushSettings?.hardness ?? 0.4;
+  const currentCharcoalEraserTexture = brushSettings?.texture ?? 0.65;
+  const currentCharcoalEraserFlow = brushSettings?.flow ?? 0.5;
 
   const handleSelectShape = (shape: ToolType) => {
     onSelectTool(shape);
@@ -75,31 +81,95 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   };
 
   const handleEraserClick = () => {
-    onSelectTool('eraser');
+    if (activeTool !== 'eraser') {
+      onSelectTool('eraser');
+    }
     setShowEraserMenu(true);
+    setShowCharcoalEraserMenu(false);
+    setShowShapesMenu(false);
+  };
+
+  const handleCharcoalEraserClick = () => {
+    if (activeTool !== 'charcoal_eraser') {
+      onSelectTool('charcoal_eraser');
+    }
+    setShowCharcoalEraserMenu(true);
+    setShowEraserMenu(false);
     setShowShapesMenu(false);
   };
 
   const handleSetEraserSize = (size: number, closeMenuImmediately: boolean = false) => {
     const clamped = Math.max(1, Math.min(200, size));
-    onUpdateBrushSettings?.({ size: clamped });
-    onSelectTool('eraser');
+    onUpdateBrushSettings?.({ size: clamped, id: 'eraser' });
+    if (activeTool !== 'eraser') {
+      onSelectTool('eraser');
+    }
     if (closeMenuImmediately) {
       setShowEraserMenu(false);
     }
   };
 
+  const handleSetCharcoalEraserSize = (size: number, closeMenuImmediately: boolean = false) => {
+    const clamped = Math.max(1, Math.min(300, size));
+    onUpdateBrushSettings?.({ size: clamped, id: 'charcoal_eraser' });
+    if (activeTool !== 'charcoal_eraser') {
+      onSelectTool('charcoal_eraser');
+    }
+    if (closeMenuImmediately) {
+      setShowCharcoalEraserMenu(false);
+    }
+  };
+
   const handleSetEraserHardness = (hardness: number) => {
-    onUpdateBrushSettings?.({ hardness });
+    onUpdateBrushSettings?.({ hardness, id: 'eraser' });
+    if (activeTool !== 'eraser') {
+      onSelectTool('eraser');
+    }
+  };
+
+  const handleSetCharcoalEraserHardness = (hardness: number) => {
+    onUpdateBrushSettings?.({ hardness, id: 'charcoal_eraser' });
+    if (activeTool !== 'charcoal_eraser') {
+      onSelectTool('charcoal_eraser');
+    }
+  };
+
+  const handleSetCharcoalEraserOpacity = (opacity: number) => {
+    onUpdateBrushSettings?.({ opacity, id: 'charcoal_eraser' });
+    if (activeTool !== 'charcoal_eraser') {
+      onSelectTool('charcoal_eraser');
+    }
+  };
+
+  const handleSetCharcoalEraserTexture = (texture: number) => {
+    onUpdateBrushSettings?.({ texture, id: 'charcoal_eraser' });
+    if (activeTool !== 'charcoal_eraser') {
+      onSelectTool('charcoal_eraser');
+    }
+  };
+
+  const handleSetCharcoalEraserFlow = (flow: number) => {
+    onUpdateBrushSettings?.({ flow, id: 'charcoal_eraser' });
+    if (activeTool !== 'charcoal_eraser') {
+      onSelectTool('charcoal_eraser');
+    }
   };
 
   const ERASER_PRESET_SIZES = [5, 10, 20, 30, 50, 75, 100, 150, 200];
+  const CHARCOAL_ERASER_PRESET_SIZES = [5, 15, 30, 50, 75, 100, 150, 200, 300];
+
+  const CharcoalSpongeIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
+    <span className={`inline-flex items-center justify-center select-none text-base leading-none ${className}`} title="استيكة الفحم">
+      🧽
+    </span>
+  );
 
   const mainTools = [
     { id: 'brush' as ToolType, name: 'فرشاة تلوين', icon: Paintbrush, shortcut: 'B' },
     { id: 'pencil' as ToolType, name: 'قلم رصاص', icon: Pencil, shortcut: 'P' },
     { id: 'ink' as ToolType, name: 'قلم حبر', icon: PenTool, shortcut: 'N' },
-    { id: 'eraser' as ToolType, name: 'مسح الأجزاء (الممحاة)', icon: Eraser, shortcut: 'E' },
+    { id: 'charcoal_eraser' as ToolType, name: '🧽 استيكة الفحم (تفتيح تدريجي)', icon: CharcoalSpongeIcon, shortcut: 'C' },
+    { id: 'eraser' as ToolType, name: 'الممحاة العادية (مسح كامل)', icon: Eraser, shortcut: 'E' },
     { id: 'fill' as ToolType, name: 'دلو التعبئة', icon: PaintBucket, shortcut: 'G' },
     { id: 'eyedropper' as ToolType, name: 'قطّارة الألوان', icon: Pipette, shortcut: 'I' },
     { id: 'move' as ToolType, name: 'تحريك وملاحة', icon: Move, shortcut: 'V' },
@@ -170,7 +240,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             onChange={(e) =>
               onUpdateShapeOptions({ ...shapeOptions, fill: e.target.checked })
             }
-            className="rounded border-neutral-700 text-amber-500 bg-neutral-800 accent-amber-500"
+            className="rounded border-neutral-700 text-blue-500 bg-neutral-800 accent-blue-500"
           />
           <span>تعبئة (Fill)</span>
         </label>
@@ -181,7 +251,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             onChange={(e) =>
               onUpdateShapeOptions({ ...shapeOptions, stroke: e.target.checked })
             }
-            className="rounded border-neutral-700 text-amber-500 bg-neutral-800 accent-amber-500"
+            className="rounded border-neutral-700 text-blue-500 bg-neutral-800 accent-blue-500"
           />
           <span>حد (Stroke)</span>
         </label>
@@ -204,7 +274,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               strokeWidth: Number(e.target.value),
             })
           }
-          className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+          className="w-full accent-blue-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
         />
       </div>
 
@@ -226,7 +296,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 curveCurvature: Number(e.target.value),
               })
             }
-            className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+            className="w-full accent-blue-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
           />
         </div>
       )}
@@ -249,7 +319,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 cornerRadius: Number(e.target.value),
               })
             }
-            className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+            className="w-full accent-blue-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
           />
         </div>
       )}
@@ -271,7 +341,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 polygonSides: Number(e.target.value),
               })
             }
-            className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+            className="w-full accent-blue-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
           />
         </div>
       )}
@@ -293,7 +363,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 starPoints: Number(e.target.value),
               })
             }
-            className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+            className="w-full accent-blue-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
           />
         </div>
       )}
@@ -317,7 +387,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 onClick={() => onSelectTool(tool.id)}
                 className={`p-2.5 rounded-xl flex flex-col items-center gap-1 transition-all ${
                   isActive
-                    ? 'bg-amber-500 text-neutral-950 font-bold shadow-md shadow-amber-500/20'
+                    ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20'
                     : 'hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200'
                 }`}
                 title={tool.name}
@@ -327,16 +397,30 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             );
           })}
 
-          {/* زر مسح الأجزاء (الممحاة) مع فتح قائمة الحجم */}
+          {/* زر 🧽 استيكة الفحم مع فتح قائمة الإعدادات */}
+          <button
+            id="mobile-tool-charcoal-eraser"
+            onClick={handleCharcoalEraserClick}
+            className={`p-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
+              activeTool === 'charcoal_eraser'
+                ? 'bg-amber-600 text-white font-bold shadow-md shadow-amber-500/25 ring-2 ring-amber-400/50'
+                : 'hover:bg-neutral-800 text-neutral-400 hover:text-amber-300'
+            }`}
+            title="🧽 استيكة الفحم - تفتيح تدريجي وإضاءات الفحم"
+          >
+            <span className="text-lg leading-none">🧽</span>
+          </button>
+
+          {/* زر مسح الأجزاء (الممحاة العادية) مع فتح قائمة الحجم */}
           <button
             id="mobile-tool-eraser"
             onClick={handleEraserClick}
             className={`p-2.5 rounded-xl flex flex-col items-center gap-1 transition-all ${
               activeTool === 'eraser'
-                ? 'bg-amber-500 text-neutral-950 font-bold shadow-md shadow-amber-500/20'
+                ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20'
                 : 'hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200'
             }`}
-            title="مسح الأجزاء - اختيار الحجم والممحاة"
+            title="مسح كامل - الممحاة العادية"
           >
             <Eraser className="w-5 h-5" />
           </button>
@@ -362,40 +446,38 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             }}
             className={`p-2.5 rounded-xl flex flex-col items-center gap-1 transition-all ${
               isShapeToolActive
-                ? 'bg-amber-500 text-neutral-950 font-bold shadow-md shadow-amber-500/20'
+                ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20'
                 : 'hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200'
             }`}
             title="الأشكال الهندسية والمنحنيات"
           >
             <Shapes className="w-5 h-5" />
           </button>
-
-          {/* Quick Line Art button */}
-          <button
-            id="mobile-lineart-trigger-btn"
-            onClick={onOpenLineArtModal}
-            className="p-2.5 rounded-xl flex flex-col items-center gap-1 bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25 transition-all"
-            title="تحويل الصورة إلى خطوط"
-          >
-            <Sparkles className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Mobile Eraser Size Modal / Drawer */}
         {showEraserMenu && (
-          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end justify-center">
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end justify-center animate-in fade-in duration-200">
             <div 
               id="mobile-eraser-drawer"
-              className="w-full max-h-[85vh] bg-neutral-900 border-t border-neutral-800 rounded-t-2xl p-4 overflow-y-auto space-y-3.5 text-neutral-100"
+              className="w-full max-h-[88vh] bg-neutral-900/98 backdrop-blur-2xl border-t border-neutral-750/90 rounded-t-3xl p-5 pb-8 overflow-y-auto space-y-4 text-neutral-100 shadow-2xl animate-in slide-in-from-bottom-8 duration-300 ease-out"
             >
-              <div className="flex items-center justify-between border-b border-neutral-800 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <Eraser className="w-5 h-5 text-amber-400" />
-                  <span className="font-bold text-sm text-neutral-100">إعدادات وحجم الممحاة</span>
+              {/* Drag handle indicator */}
+              <div className="w-12 h-1 bg-neutral-700/80 rounded-full mx-auto -mt-1 mb-2" />
+
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                    <Eraser className="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-sm text-neutral-100 block">إعدادات وحجم الممحاة</span>
+                    <span className="text-[10px] text-neutral-400">مسح كامل للخطوط والطبقات المحددة</span>
+                  </div>
                 </div>
                 <button 
                   onClick={() => setShowEraserMenu(false)}
-                  className="p-1 rounded-lg hover:bg-neutral-800 text-neutral-400"
+                  className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -404,8 +486,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               {/* Current size indicator badge */}
               <div className="bg-neutral-950/80 p-2.5 rounded-xl border border-neutral-800 flex items-center justify-between">
                 <span className="text-xs text-neutral-400">الحجم المختار:</span>
-                <span className="text-sm font-bold font-mono text-amber-400 bg-amber-500/10 px-3 py-0.5 rounded-lg border border-amber-500/30">
-                  حجم الممحاة: {currentEraserSize} px
+                <span className="text-sm font-bold font-mono text-blue-400 bg-blue-500/10 px-3 py-0.5 rounded-lg border border-blue-500/30">
+                  {currentEraserSize} px
                 </span>
               </div>
 
@@ -427,7 +509,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs text-neutral-300">
                   <span>شريط التمرير (1 px - 200 px):</span>
-                  <span className="font-mono text-amber-400 font-bold">{currentEraserSize} px</span>
+                  <span className="font-mono text-blue-400 font-bold">{currentEraserSize} px</span>
                 </div>
                 <input
                   type="range"
@@ -436,13 +518,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   step="1"
                   value={currentEraserSize}
                   onChange={(e) => handleSetEraserSize(Number(e.target.value))}
-                  className="w-full accent-amber-500 bg-neutral-800 h-2 rounded cursor-pointer"
+                  className="w-full accent-blue-500 bg-neutral-800 h-2 rounded cursor-pointer"
                 />
               </div>
 
               {/* Preset Sizes */}
               <div className="space-y-1.5">
-                <span className="text-[11px] text-neutral-400 font-medium">أحجام سريعة ومباشرة (تفعيل فوري):</span>
+                <span className="text-[11px] text-neutral-400 font-medium">أحجام سريعة ومباشرة:</span>
                 <div className="grid grid-cols-3 gap-1.5">
                   {ERASER_PRESET_SIZES.map((s) => (
                     <button
@@ -450,7 +532,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                       onClick={() => handleSetEraserSize(s, true)}
                       className={`py-2 px-2 rounded-xl text-xs font-mono font-medium transition-all ${
                         currentEraserSize === s
-                          ? 'bg-amber-500 text-neutral-950 font-bold shadow-md shadow-amber-500/20'
+                          ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20'
                           : 'bg-neutral-800 hover:bg-neutral-750 text-neutral-300 border border-neutral-700/60'
                       }`}
                     >
@@ -468,7 +550,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     onClick={() => handleSetEraserHardness(1.0)}
                     className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
                       (brushSettings?.hardness ?? 0.8) >= 0.85
-                        ? 'bg-amber-500 text-neutral-950 font-bold'
+                        ? 'bg-blue-600 text-white font-bold'
                         : 'bg-neutral-800 text-neutral-300'
                     }`}
                   >
@@ -478,7 +560,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     onClick={() => handleSetEraserHardness(0.5)}
                     className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
                       (brushSettings?.hardness ?? 0.8) < 0.85
-                        ? 'bg-amber-500 text-neutral-950 font-bold'
+                        ? 'bg-blue-600 text-white font-bold'
                         : 'bg-neutral-800 text-neutral-300'
                     }`}
                   >
@@ -488,16 +570,224 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               </div>
 
               {/* Confirm / Start Erasing Button */}
-              <button
-                onClick={() => {
-                  onSelectTool('eraser');
-                  setShowEraserMenu(false);
-                }}
-                className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
-              >
-                <Check className="w-4 h-4" />
-                <span>تأكيد وبدء المسح</span>
-              </button>
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    onSelectTool('eraser');
+                    setShowEraserMenu(false);
+                  }}
+                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>تأكيد وبدء المسح</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile 🧽 Charcoal Eraser Modal / Drawer */}
+        {showCharcoalEraserMenu && (
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end justify-center animate-in fade-in duration-200">
+            <div 
+              id="mobile-charcoal-eraser-drawer"
+              className="w-full max-h-[88vh] bg-neutral-900/98 backdrop-blur-2xl border-t border-neutral-750/90 rounded-t-3xl p-5 pb-8 overflow-y-auto space-y-4 text-neutral-100 shadow-2xl animate-in slide-in-from-bottom-8 duration-300 ease-out"
+            >
+              {/* Drag handle indicator */}
+              <div className="w-12 h-1 bg-neutral-700/80 rounded-full mx-auto -mt-1 mb-2" />
+
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-lg">
+                    🧽
+                  </div>
+                  <div>
+                    <span className="font-bold text-sm text-amber-400 block">إعدادات استيكة الفحم</span>
+                    <span className="text-[10px] text-neutral-400">تفتيح تدريجي وإبراز إضاءات الفحم والجرافيت</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowCharcoalEraserMenu(false)}
+                  className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Current size indicator badge */}
+              <div className="bg-neutral-950/80 p-2.5 rounded-xl border border-neutral-800 flex items-center justify-between">
+                <span className="text-xs text-neutral-400">الحجم المختار:</span>
+                <span className="text-sm font-bold font-mono text-amber-400 bg-amber-500/10 px-3 py-0.5 rounded-lg border border-amber-500/30">
+                  {currentCharcoalEraserSize} px
+                </span>
+              </div>
+
+              {/* Visual Live Preview of Charcoal Eraser Footprint with Texture */}
+              <div className="flex flex-col items-center justify-center p-3 bg-neutral-950/60 rounded-xl border border-neutral-800">
+                <div className="text-[11px] text-neutral-400 mb-2">معاينة استيكة الفحم (تفتيح ناعم وحبيبي):</div>
+                <div className="flex items-center justify-center w-24 h-24 relative border border-dashed border-amber-500/40 rounded-full bg-neutral-900/80 overflow-hidden">
+                  <div
+                    className="rounded-full border border-amber-400/80 bg-gradient-to-br from-amber-300/20 via-neutral-100/15 to-transparent transition-all duration-75 shadow-lg shadow-amber-500/20 flex items-center justify-center"
+                    style={{
+                      width: `${Math.min(88, Math.max(6, (currentCharcoalEraserSize / 300) * 88))}px`,
+                      height: `${Math.min(88, Math.max(6, (currentCharcoalEraserSize / 300) * 88))}px`,
+                      opacity: Math.max(0.3, currentCharcoalEraserOpacity),
+                    }}
+                  >
+                    <span className="text-[10px] opacity-70 select-none">🧽</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 1. Size Slider (1 - 300 px) */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs text-neutral-300">
+                  <span>حجم الاستيكة (1 px - 300 px):</span>
+                  <span className="font-mono text-amber-400 font-bold">{currentCharcoalEraserSize} px</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="300"
+                  step="1"
+                  value={currentCharcoalEraserSize}
+                  onChange={(e) => handleSetCharcoalEraserSize(Number(e.target.value))}
+                  className="w-full accent-amber-500 bg-neutral-800 h-2 rounded cursor-pointer"
+                />
+              </div>
+
+              {/* Preset Sizes */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] text-neutral-400 font-medium">أحجام سريعة ومباشرة:</span>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {CHARCOAL_ERASER_PRESET_SIZES.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => handleSetCharcoalEraserSize(s, true)}
+                      className={`py-1.5 px-1 rounded-xl text-xs font-mono font-medium transition-all ${
+                        currentCharcoalEraserSize === s
+                          ? 'bg-amber-600 text-white font-bold shadow-md shadow-amber-500/20'
+                          : 'bg-neutral-800 hover:bg-neutral-750 text-neutral-300 border border-neutral-700/60'
+                      }`}
+                    >
+                      {s}px
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Strength / Opacity Slider (1% - 100%) */}
+              <div className="space-y-1 pt-1 border-t border-neutral-800/80">
+                <div className="flex items-center justify-between text-xs text-neutral-300">
+                  <span>قوة المسح والتفتيح (Strength):</span>
+                  <span className="font-mono text-amber-400 font-bold">{Math.round(currentCharcoalEraserOpacity * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.01"
+                  max="1.0"
+                  step="0.01"
+                  value={currentCharcoalEraserOpacity}
+                  onChange={(e) => handleSetCharcoalEraserOpacity(Number(e.target.value))}
+                  className="w-full accent-amber-500 bg-neutral-800 h-2 rounded cursor-pointer"
+                />
+              </div>
+
+              {/* 3. Softness / Hardness Slider (0% - 100%) */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs text-neutral-300">
+                  <span>نعومة / صلابة الاستيكة:</span>
+                  <span className="font-mono text-amber-400 font-bold">{Math.round(currentCharcoalEraserHardness * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.0"
+                  max="1.0"
+                  step="0.05"
+                  value={currentCharcoalEraserHardness}
+                  onChange={(e) => handleSetCharcoalEraserHardness(Number(e.target.value))}
+                  className="w-full accent-amber-500 bg-neutral-800 h-2 rounded cursor-pointer"
+                />
+              </div>
+
+              {/* 4. Texture / Grain Slider (0% - 100%) */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs text-neutral-300">
+                  <span>ملمس النسيج وحبيبات الفحم (Texture):</span>
+                  <span className="font-mono text-amber-400 font-bold">{Math.round(currentCharcoalEraserTexture * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.0"
+                  max="1.0"
+                  step="0.05"
+                  value={currentCharcoalEraserTexture}
+                  onChange={(e) => handleSetCharcoalEraserTexture(Number(e.target.value))}
+                  className="w-full accent-amber-500 bg-neutral-800 h-2 rounded cursor-pointer"
+                />
+              </div>
+
+              {/* 5. Flow Slider (1% - 100%) */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs text-neutral-300">
+                  <span>تدفق المسح (Flow):</span>
+                  <span className="font-mono text-amber-400 font-bold">{Math.round(currentCharcoalEraserFlow * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.01"
+                  max="1.0"
+                  step="0.01"
+                  value={currentCharcoalEraserFlow}
+                  onChange={(e) => handleSetCharcoalEraserFlow(Number(e.target.value))}
+                  className="w-full accent-amber-500 bg-neutral-800 h-2 rounded cursor-pointer"
+                />
+              </div>
+
+              {/* Stylus Pressure Dynamics */}
+              <div className="pt-2 border-t border-neutral-800 space-y-1 text-xs">
+                <span className="text-[11px] font-bold text-neutral-300 block">
+                  استجابة ضغط القلم (Stylus / Apple Pencil):
+                </span>
+                <label className="flex items-center justify-between cursor-pointer text-neutral-400 hover:text-neutral-200">
+                  <span>الضغط يتحكم بالحجم</span>
+                  <input
+                    type="checkbox"
+                    checked={brushSettings?.pressureSize ?? true}
+                    onChange={(e) => {
+                      onUpdateBrushSettings?.({ pressureSize: e.target.checked, id: 'charcoal_eraser' });
+                      if (activeTool !== 'charcoal_eraser') onSelectTool('charcoal_eraser');
+                    }}
+                    className="rounded border-neutral-700 text-amber-500 bg-neutral-800 accent-amber-500 cursor-pointer"
+                  />
+                </label>
+                <label className="flex items-center justify-between cursor-pointer text-neutral-400 hover:text-neutral-200">
+                  <span>الضغط يتحكم بقوة التفتيح</span>
+                  <input
+                    type="checkbox"
+                    checked={brushSettings?.pressureOpacity ?? true}
+                    onChange={(e) => {
+                      onUpdateBrushSettings?.({ pressureOpacity: e.target.checked, id: 'charcoal_eraser' });
+                      if (activeTool !== 'charcoal_eraser') onSelectTool('charcoal_eraser');
+                    }}
+                    className="rounded border-neutral-700 text-amber-500 bg-neutral-800 accent-amber-500 cursor-pointer"
+                  />
+                </label>
+              </div>
+
+              {/* Confirm / Start Button */}
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    onSelectTool('charcoal_eraser');
+                    setShowCharcoalEraserMenu(false);
+                  }}
+                  className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-lg shadow-amber-600/30 transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>تأكيد وبدء التفتيح والمسح</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -511,7 +801,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             >
               <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
                 <div className="flex items-center gap-2">
-                  <Shapes className="w-5 h-5 text-amber-400" />
+                  <Shapes className="w-5 h-5 text-blue-400" />
                   <span className="font-bold text-neutral-100">الأشكال الهندسية والمنحنيات</span>
                 </div>
                 <button 
@@ -530,7 +820,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     onClick={() => setSelectedShapeCategory(cat)}
                     className={`px-3 py-1 rounded-lg text-xs whitespace-nowrap transition-colors ${
                       selectedShapeCategory === cat
-                        ? 'bg-amber-500 text-neutral-950 font-bold'
+                        ? 'bg-blue-600 text-white font-bold'
                         : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
                     }`}
                   >
@@ -540,7 +830,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               </div>
 
               {/* Shapes grid */}
-              <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[55vh] overflow-y-auto pr-1">
                 {filteredShapes.map((shape) => {
                   const Icon = shape.icon;
                   const isActive = activeTool === shape.id;
@@ -550,7 +840,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                       onClick={() => handleSelectShape(shape.id)}
                       className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs transition-all ${
                         isActive
-                          ? 'bg-amber-500 text-neutral-950 font-bold border-amber-500 shadow-md shadow-amber-500/20'
+                          ? 'bg-blue-600 text-white font-bold border-blue-500 shadow-md shadow-blue-500/20'
                           : 'bg-neutral-800/70 border-neutral-700/60 text-neutral-200 hover:bg-neutral-800'
                       }`}
                     >
@@ -580,6 +870,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           const Icon = tool.icon;
           const isActive = activeTool === tool.id;
           const isEraserTool = tool.id === 'eraser';
+          const isCharcoalEraserTool = tool.id === 'charcoal_eraser';
 
           return (
             <React.Fragment key={tool.id}>
@@ -589,15 +880,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   onClick={() => {
                     if (isEraserTool) {
                       handleEraserClick();
+                    } else if (isCharcoalEraserTool) {
+                      handleCharcoalEraserClick();
                     } else {
                       onSelectTool(tool.id);
                       setShowEraserMenu(false);
+                      setShowCharcoalEraserMenu(false);
                       setShowShapesMenu(false);
                     }
                   }}
                   className={`relative group p-2.5 rounded-xl w-11 h-11 flex items-center justify-center transition-all ${
                     isActive
-                      ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/25 font-bold'
+                      ? isCharcoalEraserTool
+                        ? 'bg-amber-600 text-white shadow-md shadow-amber-500/25 font-bold ring-2 ring-amber-400/50'
+                        : 'bg-blue-600 text-white shadow-md shadow-blue-500/25 font-bold'
                       : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800'
                   }`}
                   title={`${tool.name} (${tool.shortcut})`}
@@ -610,6 +906,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     </span>
                   )}
 
+                  {isCharcoalEraserTool && (
+                    <span className="absolute bottom-0.5 left-0.5 text-[8px] font-mono font-bold text-amber-400 group-hover:text-amber-200">
+                      {currentCharcoalEraserSize}
+                    </span>
+                  )}
+
                   {/* Tooltip */}
                   <div className="absolute right-full mr-2 hidden group-hover:flex items-center px-2.5 py-1 bg-neutral-950 border border-neutral-800 text-neutral-200 text-xs rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none">
                     <span>{tool.name}</span>
@@ -619,123 +921,345 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                   </div>
                 </button>
 
-                {/* Eraser Size Selector Dropdown / Popover for Desktop */}
-                {isEraserTool && showEraserMenu && (
-                  <div 
-                    id="desktop-eraser-size-popover"
-                    className="absolute right-full mr-3 top-0 w-72 p-3.5 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl z-50 space-y-3 text-neutral-200 animate-in fade-in zoom-in-95 duration-150"
-                  >
-                    <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-                      <div className="flex items-center gap-2">
-                        <Eraser className="w-4 h-4 text-amber-400" />
-                        <span className="font-bold text-xs text-neutral-100">إعدادات وحجم الممحاة</span>
+                {/* 🧽 Charcoal Eraser Popover for Desktop */}
+                {isCharcoalEraserTool && showCharcoalEraserMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200"
+                      onClick={() => setShowCharcoalEraserMenu(false)}
+                    />
+                    <div 
+                      id="desktop-charcoal-eraser-popover"
+                      className="fixed right-20 top-4 bottom-4 my-auto max-h-[min(92vh,760px)] w-[360px] p-4 bg-neutral-900/98 backdrop-blur-2xl border border-neutral-750/90 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.75)] z-50 flex flex-col space-y-3 text-neutral-200 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-right-4 duration-200 ease-out select-none scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent"
+                    >
+                      <div className="flex items-center justify-between border-b border-neutral-800 pb-2.5 shrink-0">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-lg">
+                            🧽
+                          </div>
+                          <div>
+                            <span className="font-bold text-xs text-amber-400 block">إعدادات استيكة الفحم</span>
+                            <span className="text-[10px] text-neutral-400">تفتيح تدريجي وإبراز إضاءات الفحم والجرافيت</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setShowCharcoalEraserMenu(false)}
+                          className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 transition-colors"
+                          title="إغلاق"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => setShowEraserMenu(false)}
-                        className="p-1 rounded-md hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
 
-                    {/* Current Size Display */}
-                    <div className="bg-neutral-950/70 p-2 rounded-xl border border-neutral-800/80 flex items-center justify-between">
-                      <span className="text-[11px] text-neutral-400">الحجم المختار:</span>
-                      <span className="text-xs font-bold font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/30">
-                        حجم الممحاة: {currentEraserSize} px
-                      </span>
-                    </div>
+                      {/* Current Size Display Badge */}
+                      <div className="bg-neutral-950/80 p-2.5 rounded-xl border border-neutral-800/80 flex items-center justify-between shrink-0">
+                        <span className="text-[11px] text-neutral-400">الحجم المختار حالياً:</span>
+                        <span className="text-xs font-bold font-mono text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/30">
+                          {currentCharcoalEraserSize} px
+                        </span>
+                      </div>
 
-                    {/* Visual footprint preview circle */}
-                    <div className="flex flex-col items-center justify-center p-2.5 bg-neutral-950/60 rounded-xl border border-neutral-800/80">
-                      <div className="text-[10px] text-neutral-500 mb-1.5">معاينة مساحة المسح الحقيقية:</div>
-                      <div className="flex items-center justify-center w-16 h-16 relative border border-dashed border-neutral-700/60 rounded-full bg-neutral-900/50">
-                        <div
-                          className="rounded-full border-2 border-red-400 bg-red-500/25 transition-all duration-75 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
-                          style={{
-                            width: `${Math.min(60, Math.max(4, (currentEraserSize / 200) * 60))}px`,
-                            height: `${Math.min(60, Math.max(4, (currentEraserSize / 200) * 60))}px`,
-                          }}
+                      {/* Visual footprint preview circle with soft texture */}
+                      <div className="flex flex-col items-center justify-center p-2.5 bg-neutral-950/60 rounded-xl border border-neutral-800/80 shrink-0">
+                        <div className="text-[10px] text-neutral-400 mb-1.5">معاينة مساحة التفتيح وملمس الاستيكة:</div>
+                        <div className="flex items-center justify-center w-20 h-20 relative border border-dashed border-amber-500/40 rounded-full bg-neutral-900/80 overflow-hidden">
+                          <div
+                            className="rounded-full border border-amber-400/90 bg-gradient-to-br from-amber-300/25 via-neutral-100/10 to-transparent transition-all duration-75 shadow-[0_0_12px_rgba(245,158,11,0.25)] flex items-center justify-center"
+                            style={{
+                              width: `${Math.min(72, Math.max(6, (currentCharcoalEraserSize / 300) * 72))}px`,
+                              height: `${Math.min(72, Math.max(6, (currentCharcoalEraserSize / 300) * 72))}px`,
+                              opacity: Math.max(0.3, currentCharcoalEraserOpacity),
+                            }}
+                          >
+                            <span className="text-[10px] opacity-70 select-none">🧽</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 1. Size Slider (1 - 300 px) */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[11px] text-neutral-300">
+                          <span>حجم الاستيكة (1 - 300 px):</span>
+                          <span className="font-mono text-amber-400 font-bold">{currentCharcoalEraserSize} px</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="300"
+                          step="1"
+                          value={currentCharcoalEraserSize}
+                          onChange={(e) => handleSetCharcoalEraserSize(Number(e.target.value))}
+                          className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
                         />
                       </div>
-                    </div>
 
-                    {/* Slider */}
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[11px] text-neutral-300">
-                        <span>شريط التمرير (1 - 200 px):</span>
-                        <span className="font-mono text-amber-400 font-bold">{currentEraserSize} px</span>
+                      {/* Preset Size Grid */}
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-neutral-400 font-medium">أحجام سريعة ومباشرة:</span>
+                        <div className="grid grid-cols-5 gap-1">
+                          {CHARCOAL_ERASER_PRESET_SIZES.map((s) => (
+                            <button
+                              key={s}
+                              onClick={() => handleSetCharcoalEraserSize(s, true)}
+                              className={`py-1 px-1 rounded-lg text-[10px] font-mono font-medium transition-all ${
+                                currentCharcoalEraserSize === s
+                                  ? 'bg-amber-600 text-white font-bold shadow-md shadow-amber-500/20'
+                                  : 'bg-neutral-800 hover:bg-neutral-750 text-neutral-300 border border-neutral-750'
+                              }`}
+                            >
+                              {s}px
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                      <input
-                        type="range"
-                        min="1"
-                        max="200"
-                        step="1"
-                        value={currentEraserSize}
-                        onChange={(e) => handleSetEraserSize(Number(e.target.value))}
-                        className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
-                      />
-                    </div>
 
-                    {/* Preset Size Grid (5, 10, 20, 30, 50, 75, 100, 150, 200) */}
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-neutral-400 font-medium">أحجام سريعة ومباشرة (تفعيل فوري):</span>
-                      <div className="grid grid-cols-3 gap-1">
-                        {ERASER_PRESET_SIZES.map((s) => (
+                      {/* 2. Strength / Opacity Slider (1% - 100%) */}
+                      <div className="space-y-1 pt-1.5 border-t border-neutral-800">
+                        <div className="flex items-center justify-between text-[11px] text-neutral-300">
+                          <span>قوة المسح والتفتيح (Strength):</span>
+                          <span className="font-mono text-amber-400 font-bold">{Math.round(currentCharcoalEraserOpacity * 100)}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.01"
+                          max="1.0"
+                          step="0.01"
+                          value={currentCharcoalEraserOpacity}
+                          onChange={(e) => handleSetCharcoalEraserOpacity(Number(e.target.value))}
+                          className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      {/* 3. Softness / Hardness Slider */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[11px] text-neutral-300">
+                          <span>نعومة / صلابة الاستيكة:</span>
+                          <span className="font-mono text-amber-400 font-bold">{Math.round(currentCharcoalEraserHardness * 100)}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.0"
+                          max="1.0"
+                          step="0.05"
+                          value={currentCharcoalEraserHardness}
+                          onChange={(e) => handleSetCharcoalEraserHardness(Number(e.target.value))}
+                          className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      {/* 4. Texture / Grain Slider */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[11px] text-neutral-300">
+                          <span>ملمس النسيج وحبيبات الفحم (Texture):</span>
+                          <span className="font-mono text-amber-400 font-bold">{Math.round(currentCharcoalEraserTexture * 100)}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.0"
+                          max="1.0"
+                          step="0.05"
+                          value={currentCharcoalEraserTexture}
+                          onChange={(e) => handleSetCharcoalEraserTexture(Number(e.target.value))}
+                          className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      {/* 5. Flow Slider */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[11px] text-neutral-300">
+                          <span>تدفق المسح (Flow):</span>
+                          <span className="font-mono text-amber-400 font-bold">{Math.round(currentCharcoalEraserFlow * 100)}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.01"
+                          max="1.0"
+                          step="0.01"
+                          value={currentCharcoalEraserFlow}
+                          onChange={(e) => handleSetCharcoalEraserFlow(Number(e.target.value))}
+                          className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Stylus Pressure Toggles */}
+                      <div className="pt-2 border-t border-neutral-800 space-y-1 text-[11px]">
+                        <span className="text-[10px] font-bold text-neutral-400 block">
+                          استجابة ضغط القلم (Stylus / Apple Pencil):
+                        </span>
+                        <label className="flex items-center justify-between cursor-pointer text-neutral-400 hover:text-neutral-200">
+                          <span>الضغط يتحكم بالحجم</span>
+                          <input
+                            type="checkbox"
+                            checked={brushSettings?.pressureSize ?? true}
+                            onChange={(e) => {
+                              onUpdateBrushSettings?.({ pressureSize: e.target.checked, id: 'charcoal_eraser' });
+                              if (activeTool !== 'charcoal_eraser') onSelectTool('charcoal_eraser');
+                            }}
+                            className="rounded border-neutral-700 text-amber-500 bg-neutral-800 accent-amber-500 cursor-pointer"
+                          />
+                        </label>
+                        <label className="flex items-center justify-between cursor-pointer text-neutral-400 hover:text-neutral-200">
+                          <span>الضغط يتحكم بقوة التفتيح</span>
+                          <input
+                            type="checkbox"
+                            checked={brushSettings?.pressureOpacity ?? true}
+                            onChange={(e) => {
+                              onUpdateBrushSettings?.({ pressureOpacity: e.target.checked, id: 'charcoal_eraser' });
+                              if (activeTool !== 'charcoal_eraser') onSelectTool('charcoal_eraser');
+                            }}
+                            className="rounded border-neutral-700 text-amber-500 bg-neutral-800 accent-amber-500 cursor-pointer"
+                          />
+                        </label>
+                      </div>
+
+                      {/* Confirm Button */}
+                      <div className="pt-2 pb-1 shrink-0">
+                        <button
+                          onClick={() => {
+                            onSelectTool('charcoal_eraser');
+                            setShowCharcoalEraserMenu(false);
+                          }}
+                          className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-lg shadow-amber-600/30 transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
+                        >
+                          <Check className="w-4 h-4" />
+                          <span>تأكيد وبدء التفتيح والمسح</span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Eraser Size Selector Dropdown / Popover for Desktop */}
+                {isEraserTool && showEraserMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200"
+                      onClick={() => setShowEraserMenu(false)}
+                    />
+                    <div 
+                      id="desktop-eraser-size-popover"
+                      className="fixed right-20 top-4 bottom-4 my-auto max-h-[min(92vh,700px)] w-[350px] p-4 bg-neutral-900/98 backdrop-blur-2xl border border-neutral-750/90 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.75)] z-50 flex flex-col space-y-3 text-neutral-200 overflow-y-auto animate-in fade-in-0 zoom-in-95 slide-in-from-right-4 duration-200 ease-out select-none scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent"
+                    >
+                      <div className="flex items-center justify-between border-b border-neutral-800 pb-2.5 shrink-0">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                            <Eraser className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <span className="font-bold text-xs text-neutral-100 block">إعدادات الممحاة العادية</span>
+                            <span className="text-[10px] text-neutral-400">مسح كامل للخطوط والطبقات المحددة</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setShowEraserMenu(false)}
+                          className="p-1.5 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 transition-colors"
+                          title="إغلاق"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Current Size Display */}
+                      <div className="bg-neutral-950/80 p-2.5 rounded-xl border border-neutral-800/80 flex items-center justify-between shrink-0">
+                        <span className="text-[11px] text-neutral-400">الحجم المختار:</span>
+                        <span className="text-xs font-bold font-mono text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-lg border border-blue-500/30">
+                          {currentEraserSize} px
+                        </span>
+                      </div>
+
+                      {/* Visual footprint preview circle */}
+                      <div className="flex flex-col items-center justify-center p-2.5 bg-neutral-950/60 rounded-xl border border-neutral-800/80 shrink-0">
+                        <div className="text-[10px] text-neutral-500 mb-1.5">معاينة مساحة المسح الحقيقية:</div>
+                        <div className="flex items-center justify-center w-16 h-16 relative border border-dashed border-neutral-700/60 rounded-full bg-neutral-900/50">
+                          <div
+                            className="rounded-full border-2 border-red-400 bg-red-500/25 transition-all duration-75 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
+                            style={{
+                              width: `${Math.min(60, Math.max(4, (currentEraserSize / 200) * 60))}px`,
+                              height: `${Math.min(60, Math.max(4, (currentEraserSize / 200) * 60))}px`,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Slider */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[11px] text-neutral-300">
+                          <span>شريط التمرير (1 - 200 px):</span>
+                          <span className="font-mono text-blue-400 font-bold">{currentEraserSize} px</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="200"
+                          step="1"
+                          value={currentEraserSize}
+                          onChange={(e) => handleSetEraserSize(Number(e.target.value))}
+                          className="w-full accent-blue-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Preset Size Grid (5, 10, 20, 30, 50, 75, 100, 150, 200) */}
+                      <div className="space-y-1">
+                        <span className="text-[10px] text-neutral-400 font-medium">أحجام سريعة ومباشرة:</span>
+                        <div className="grid grid-cols-3 gap-1">
+                          {ERASER_PRESET_SIZES.map((s) => (
+                            <button
+                              key={s}
+                              onClick={() => handleSetEraserSize(s, true)}
+                              className={`py-1 px-1 rounded-lg text-[11px] font-mono font-medium transition-all ${
+                                currentEraserSize === s
+                                  ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20'
+                                  : 'bg-neutral-800 hover:bg-neutral-750 text-neutral-300 border border-neutral-750'
+                              }`}
+                            >
+                              {s} px
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Hardness selector */}
+                      <div className="flex items-center justify-between pt-1.5 border-t border-neutral-800 text-[11px]">
+                        <span className="text-neutral-400">نوع المسح:</span>
+                        <div className="flex gap-1">
                           <button
-                            key={s}
-                            onClick={() => handleSetEraserSize(s, true)}
-                            className={`py-1 px-1 rounded-lg text-[11px] font-mono font-medium transition-all ${
-                              currentEraserSize === s
-                                ? 'bg-amber-500 text-neutral-950 font-bold shadow-md shadow-amber-500/20'
-                                : 'bg-neutral-800 hover:bg-neutral-750 text-neutral-300 border border-neutral-750'
+                            onClick={() => handleSetEraserHardness(1.0)}
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-colors ${
+                              (brushSettings?.hardness ?? 0.8) >= 0.85
+                                ? 'bg-blue-600 text-white font-bold'
+                                : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-750'
                             }`}
                           >
-                            {s} px
+                            حادة (صلبة)
                           </button>
-                        ))}
+                          <button
+                            onClick={() => handleSetEraserHardness(0.5)}
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-colors ${
+                              (brushSettings?.hardness ?? 0.8) < 0.85
+                                ? 'bg-blue-600 text-white font-bold'
+                                : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-750'
+                            }`}
+                          >
+                            ناعمة (متدرجة)
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Hardness selector */}
-                    <div className="flex items-center justify-between pt-1.5 border-t border-neutral-800 text-[11px]">
-                      <span className="text-neutral-400">نوع المسح:</span>
-                      <div className="flex gap-1">
+                      {/* Confirm Button */}
+                      <div className="pt-2 pb-1 shrink-0">
                         <button
-                          onClick={() => handleSetEraserHardness(1.0)}
-                          className={`px-2 py-0.5 rounded text-[10px] transition-colors ${
-                            (brushSettings?.hardness ?? 0.8) >= 0.85
-                              ? 'bg-amber-500 text-neutral-950 font-bold'
-                              : 'bg-neutral-800 text-neutral-300'
-                          }`}
+                          onClick={() => {
+                            onSelectTool('eraser');
+                            setShowEraserMenu(false);
+                          }}
+                          className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
                         >
-                          حادة
-                        </button>
-                        <button
-                          onClick={() => handleSetEraserHardness(0.5)}
-                          className={`px-2 py-0.5 rounded text-[10px] transition-colors ${
-                            (brushSettings?.hardness ?? 0.8) < 0.85
-                              ? 'bg-amber-500 text-neutral-950 font-bold'
-                              : 'bg-neutral-800 text-neutral-300'
-                          }`}
-                        >
-                          ناعمة
+                          <Check className="w-4 h-4" />
+                          <span>تأكيد وبدء المسح</span>
                         </button>
                       </div>
                     </div>
-
-                    {/* Confirm Button */}
-                    <button
-                      onClick={() => {
-                        onSelectTool('eraser');
-                        setShowEraserMenu(false);
-                      }}
-                      className="w-full py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-1"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>تأكيد وبدء المسح</span>
-                    </button>
-                  </div>
+                  </>
                 )}
               </div>
 
@@ -766,7 +1290,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             onClick={() => setShowShapesMenu(!showShapesMenu)}
             className={`relative group p-2.5 rounded-xl w-11 h-11 flex items-center justify-center transition-all ${
               isShapeToolActive
-                ? 'bg-amber-500 text-neutral-950 shadow-md shadow-amber-500/25 font-bold'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 font-bold'
                 : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800'
             }`}
             title="جميع الأشكال الهندسية والمنحنيات"
@@ -778,30 +1302,30 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           {showShapesMenu && (
             <div 
               id="shapes-dropdown-popup"
-              className="absolute right-full mr-3 top-0 w-84 p-3 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl z-50 space-y-3 text-neutral-200 max-h-[85vh] overflow-y-auto"
+              className="absolute right-full mr-3 bottom-0 w-[420px] p-4 bg-neutral-900/98 border border-neutral-800 rounded-2xl shadow-2xl z-50 space-y-3.5 text-neutral-200 max-h-[88vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150 backdrop-blur-md"
             >
-              <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <Shapes className="w-4 h-4 text-amber-400" />
-                  <span className="font-bold text-xs text-neutral-100">الأشكال الهندسية والمنحنيات</span>
+                  <Shapes className="w-4 h-4 text-blue-400" />
+                  <span className="font-bold text-xs text-neutral-100">مكتبة الأشكال الهندسية والمنحنيات</span>
                 </div>
                 <button
                   onClick={() => setShowShapesMenu(false)}
-                  className="p-1 rounded-md hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200"
+                  className="p-1 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Category selector pills */}
-              <div className="flex gap-1 bg-neutral-950/60 p-1 rounded-xl border border-neutral-800 overflow-x-auto">
+              <div className="flex gap-1 bg-neutral-950/70 p-1 rounded-xl border border-neutral-800/80 overflow-x-auto">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedShapeCategory(cat)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${
+                    className={`px-3 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all ${
                       selectedShapeCategory === cat
-                        ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
+                        ? 'bg-blue-600 text-white font-bold shadow-sm'
                         : 'text-neutral-400 hover:text-neutral-200'
                     }`}
                   >
@@ -811,7 +1335,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               </div>
 
               {/* Grid of all shapes */}
-              <div className="grid grid-cols-3 gap-1.5 max-h-60 overflow-y-auto pr-1">
+              <div className="grid grid-cols-4 gap-2 max-h-[52vh] overflow-y-auto pr-1">
                 {filteredShapes.map((shape) => {
                   const Icon = shape.icon;
                   const isActive = activeTool === shape.id;
@@ -819,15 +1343,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     <button
                       key={shape.id}
                       onClick={() => handleSelectShape(shape.id)}
-                      className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-center transition-all ${
+                      className={`flex flex-col items-center justify-center gap-1.5 p-2.5 rounded-xl border text-center transition-all ${
                         isActive
-                          ? 'bg-amber-500 text-neutral-950 font-bold border-amber-500 shadow-md shadow-amber-500/20'
-                          : 'bg-neutral-800/60 border-neutral-750/70 hover:bg-neutral-800 hover:border-neutral-600 text-neutral-300'
+                          ? 'bg-blue-600 text-white font-bold border-blue-500 shadow-md shadow-blue-500/20'
+                          : 'bg-neutral-800/60 border-neutral-750/70 hover:bg-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-neutral-100'
                       }`}
                       title={shape.name}
                     >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-[10px] truncate w-full">{shape.name}</span>
+                      <Icon className="w-4.5 h-4.5" />
+                      <span className="text-[10px] font-medium truncate w-full">{shape.name}</span>
                     </button>
                   );
                 })}
@@ -838,37 +1362,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             </div>
           )}
         </div>
-      </div>
-
-      <div className="w-8 h-[1px] bg-neutral-800 my-1" />
-
-      {/* Prominent Image & Outline Extraction Buttons */}
-      <div className="flex flex-col items-center gap-2 w-full mt-auto mb-2">
-        {/* Upload Image Button */}
-        <button
-          id="toolbar-upload-image-btn"
-          onClick={onOpenImageUpload}
-          className="group relative p-2.5 rounded-xl w-11 h-11 flex items-center justify-center text-neutral-300 hover:text-neutral-100 hover:bg-neutral-800 border border-neutral-800 transition-all"
-          title="رفع صورة"
-        >
-          <ImageIcon className="w-5 h-5" />
-          <div className="absolute right-full mr-2 hidden group-hover:flex items-center px-2.5 py-1 bg-neutral-950 border border-neutral-800 text-neutral-200 text-xs rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none">
-            <span>رفع صورة إلى العمل</span>
-          </div>
-        </button>
-
-        {/* Feature Button: Line Art / Outline extraction */}
-        <button
-          id="toolbar-lineart-extract-btn"
-          onClick={onOpenLineArtModal}
-          className="group relative p-2.5 rounded-xl w-11 h-11 flex items-center justify-center bg-amber-500/15 border border-amber-500/40 text-amber-400 hover:bg-amber-500 hover:text-neutral-950 transition-all shadow-lg shadow-amber-500/10"
-          title="استخراج الحدود والـ Line Art"
-        >
-          <Sparkles className="w-5 h-5" />
-          <div className="absolute right-full mr-2 hidden group-hover:flex items-center px-2.5 py-1 bg-neutral-950 border border-amber-500/30 text-amber-300 text-xs rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none font-bold">
-            <span>تحويل الصورة إلى خطوط (Line Art)</span>
-          </div>
-        </button>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layer } from '../types';
-import { Download, X, Check, FileImage } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -30,7 +30,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const exportWidth = width * scale;
     const exportHeight = height * scale;
 
@@ -41,6 +41,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     if (!ctx) return;
 
     // Scale transform if scale > 1
+    ctx.save();
     if (scale !== 1) {
       ctx.scale(scale, scale);
     }
@@ -60,6 +61,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
       ctx.drawImage(layer.canvas, 0, 0);
       ctx.restore();
     }
+
+    // Restore context scale
+    ctx.restore();
 
     // Export based on format
     const fileName = `${projectTitle.replace(/\s+/g, '_')}_${Date.now()}`;
@@ -97,13 +101,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     >
       <div 
         id="export-modal-dialog"
-        className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden text-neutral-100 flex flex-col"
+        className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden text-neutral-100 flex flex-col max-h-[90vh]"
         dir="rtl"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800 bg-neutral-950/60">
           <div className="flex items-center gap-2">
-            <Download className="w-5 h-5 text-amber-400" />
+            <Download className="w-5 h-5 text-blue-400" />
             <h3 className="font-bold text-sm text-neutral-100">تصدير اللوحة الفنية</h3>
           </div>
           <button
@@ -115,7 +119,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         </div>
 
         {/* Form Options */}
-        <div className="p-6 space-y-4 text-xs">
+        <div className="p-6 space-y-4 text-xs overflow-y-auto max-h-[70vh]">
           {/* Format selection */}
           <div className="space-y-1.5">
             <label className="text-neutral-300 font-bold block">صيغة الملف</label>
@@ -130,9 +134,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   key={fmt.id}
                   type="button"
                   onClick={() => setFormat(fmt.id as any)}
-                  className={`p-2 rounded-xl border text-center transition-colors ${
+                  className={`p-2 rounded-xl border text-center transition-colors cursor-pointer ${
                     format === fmt.id
-                      ? 'border-amber-500 bg-amber-500/10 text-amber-300 font-bold'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-300 font-bold'
                       : 'border-neutral-800 bg-neutral-950/40 text-neutral-400 hover:bg-neutral-800'
                   }`}
                 >
@@ -146,7 +150,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           <div className="space-y-1.5">
             <div className="flex justify-between text-neutral-300">
               <span className="font-bold">دقة التصدير وحجم البكسل</span>
-              <span className="font-mono text-amber-400">
+              <span className="font-mono text-blue-400">
                 {width * scale} × {height * scale} px
               </span>
             </div>
@@ -160,9 +164,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   key={item.s}
                   type="button"
                   onClick={() => setScale(item.s)}
-                  className={`p-2 rounded-xl border text-center transition-colors ${
+                  className={`p-2 rounded-xl border text-center transition-colors cursor-pointer ${
                     scale === item.s
-                      ? 'border-amber-500 bg-amber-500/10 text-amber-300 font-bold'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-300 font-bold'
                       : 'border-neutral-800 bg-neutral-950/40 text-neutral-400 hover:bg-neutral-800'
                   }`}
                 >
@@ -177,7 +181,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             <div className="space-y-1">
               <div className="flex justify-between text-neutral-400">
                 <span>جودة الضغط</span>
-                <span className="font-mono text-amber-400">{Math.round(quality * 100)}%</span>
+                <span className="font-mono text-blue-400">{Math.round(quality * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -186,37 +190,38 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 step="0.05"
                 value={quality}
                 onChange={(e) => setQuality(Number(e.target.value))}
-                className="w-full accent-amber-500 bg-neutral-800 h-1.5 rounded"
+                className="w-full accent-blue-500 bg-neutral-800 h-1.5 rounded cursor-pointer"
               />
             </div>
           )}
 
           {/* Background transparency toggle */}
           {format !== 'jpeg' && (
-            <label className="flex items-center gap-2 text-neutral-300 cursor-pointer pt-2">
+            <label className="flex items-center gap-2 text-neutral-300 cursor-pointer pt-1">
               <input
                 type="checkbox"
                 checked={includeBackground}
                 onChange={(e) => setIncludeBackground(e.target.checked)}
-                className="rounded border-neutral-700 text-amber-500 bg-neutral-800"
+                className="rounded border-neutral-700 text-blue-500 bg-neutral-800"
               />
               <span>تضمين لون الخلفية (إلغاء التحديد لحفظ خلفية شفافة)</span>
             </label>
           )}
+
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-800 bg-neutral-950/80">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-medium"
+            className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-medium cursor-pointer font-bold"
           >
             إلغاء
           </button>
 
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold shadow-lg shadow-amber-500/20"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold shadow-lg shadow-blue-500/20 cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>تنزيل الصورة الآن</span>

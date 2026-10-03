@@ -56,7 +56,8 @@ export function processAISubjectDrawing(
   // Stage 3: Bilateral-like Tone Flattening (Eliminates skin texture, fabric grain, lighting gradients)
   const flattenedLum = flattenTonesAndSuppressTextures(luminance, width, height, settings.smoothing);
 
-  // Stage 4: Extract Key Structural Lines & Outline (No shadows, no textures)
+  // Stage 4: Extract Outer Silhouette Contour & Core Internal Structural Lines (No shadows, no textures, no filled areas)
+  const subjectContour = extractSubjectContour(subjectMask, width, height);
   const rawLines = extractKeyStructuralLines(
     flattenedLum,
     luminance,
@@ -65,17 +66,23 @@ export function processAISubjectDrawing(
     settings.detailLevel
   );
 
-  // Stage 5: Mask gating - strictly enforce subject area (zero background lines)
-  const gatedLines = new Float32Array(totalPixels);
+  // Stage 5: Combine outer contour with structural lines and strictly enforce subject mask
+  const combinedLines = new Float32Array(totalPixels);
   for (let i = 0; i < totalPixels; i++) {
     const m = subjectMask[i];
-    gatedLines[i] = m > 0.1 ? rawLines[i] * m : 0;
+    if (m > 0.1) {
+      const isContour = subjectContour[i];
+      const struct = rawLines[i];
+      combinedLines[i] = Math.max(isContour * 1.0, struct * 0.9) * m;
+    } else {
+      combinedLines[i] = 0;
+    }
   }
 
   // Stage 6: Line Cleaning & Short Fragment Pruning (removes stray specks and short jagged noise)
   const cleanedLines = settings.cleanLines
-    ? pruneStrayLineFragments(gatedLines, width, height, settings.detailLevel)
-    : gatedLines;
+    ? pruneStrayLineFragments(combinedLines, width, height, settings.detailLevel)
+    : combinedLines;
 
   // Stage 7: Line Smoothing and Thickness Rendering (1 to 20 px)
   const renderedLines = renderSmoothStrokes(
@@ -635,6 +642,33 @@ function applyMorphologicalClosing(mask: Float32Array, width: number, height: nu
   }
 
   return eroded;
+}
+
+/**
+ * Extract clean outer silhouette contour from subject mask
+ */
+function extractSubjectContour(mask: Float32Array, width: number, height: number): Float32Array {
+  const contour = new Float32Array(width * height);
+  for (let y = 1; y < height - 1; y++) {
+    const row = y * width;
+    const prevRow = (y - 1) * width;
+    const nextRow = (y + 1) * width;
+    for (let x = 1; x < width - 1; x++) {
+      const idx = row + x;
+      const m = mask[idx];
+      if (m > 0.5) {
+        if (
+          mask[prevRow + x] <= 0.5 ||
+          mask[nextRow + x] <= 0.5 ||
+          mask[row + x - 1] <= 0.5 ||
+          mask[row + x + 1] <= 0.5
+        ) {
+          contour[idx] = 1.0;
+        }
+      }
+    }
+  }
+  return contour;
 }
 
 /**

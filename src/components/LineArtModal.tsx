@@ -111,6 +111,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -397,7 +398,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 bg-neutral-950 border-b border-neutral-800">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-neutral-950 font-black shadow-md shadow-amber-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-500 to-blue-300 flex items-center justify-center text-neutral-950 font-black shadow-md shadow-blue-500/20">
               <PenTool className="w-5 h-5" />
             </div>
             <div>
@@ -405,7 +406,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                 <h2 className="text-base font-bold text-neutral-100">
                   تحويل الصورة إلى خطوط (Line Drawing بالذكاء الاصطناعي)
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
                   AI Line Art
                 </span>
               </div>
@@ -456,7 +457,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                   onClick={() => setPreviewMode('overlay')}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all ${
                     previewMode === 'overlay' 
-                      ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm' 
+                      ? 'bg-blue-600 text-white font-bold shadow-sm' 
                       : 'text-neutral-400 hover:text-neutral-200'
                   }`}
                   title="عرض الصورة الأصلية الملونة مع الخطوط فوقها للمقارنة"
@@ -470,7 +471,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                   onClick={() => setPreviewMode('linesOnly')}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all ${
                     previewMode === 'linesOnly' 
-                      ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm' 
+                      ? 'bg-blue-600 text-white font-bold shadow-sm' 
                       : 'text-neutral-400 hover:text-neutral-200'
                   }`}
                   title="عرض الرسم الخطي فقط بدون الصورة الأصلية"
@@ -484,7 +485,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                   onClick={() => setPreviewMode('split')}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all ${
                     previewMode === 'split' 
-                      ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm' 
+                      ? 'bg-blue-600 text-white font-bold shadow-sm' 
                       : 'text-neutral-400 hover:text-neutral-200'
                   }`}
                   title="مقارنة منقسمة بين الصورة الأصلية والرسم الخطي"
@@ -498,7 +499,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                   onClick={() => setPreviewMode('mask')}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all ${
                     previewMode === 'mask' 
-                      ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm' 
+                      ? 'bg-blue-600 text-white font-bold shadow-sm' 
                       : 'text-neutral-400 hover:text-neutral-200'
                   }`}
                   title="عرض قناع عزل الجسم عن الخلفية"
@@ -512,8 +513,8 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-900/90 border border-neutral-800 text-[11px] text-neutral-300">
                 {isProcessing ? (
                   <>
-                    <RefreshCw className="w-3 h-3 text-amber-400 animate-spin" />
-                    <span className="text-amber-400">جاري المعالجة...</span>
+                    <RefreshCw className="w-3 h-3 text-blue-400 animate-spin" />
+                    <span className="text-blue-400">جاري المعالجة...</span>
                   </>
                 ) : (
                   <>
@@ -543,7 +544,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
 
                   {/* Seed point indicator if user clicked */}
                   {settings.selectedSeedPoints.length > 0 && (
-                    <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-amber-500/90 text-neutral-950 text-[10px] font-bold shadow flex items-center gap-1">
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-blue-600/90 text-white text-[10px] font-bold shadow flex items-center gap-1">
                       <MousePointerClick className="w-3 h-3" />
                       <span>تم تحديد الجسم بنقرتك</span>
                       <button
@@ -561,7 +562,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center p-8 text-center text-neutral-400">
-                  <div className="w-16 h-16 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-3 text-amber-400">
+                  <div className="w-16 h-16 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-3 text-blue-400">
                     <ImageIcon className="w-8 h-8" />
                   </div>
                   <p className="text-sm font-semibold text-neutral-200 mb-1">
@@ -572,7 +573,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                   </p>
                   <button
                     onClick={() => hiddenFileInputRef.current?.click()}
-                    className="px-4 py-2 rounded-xl bg-amber-500 text-neutral-950 font-bold text-xs hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 flex items-center gap-2"
+                    className="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-400 transition-colors shadow-lg shadow-blue-500/20 flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" />
                     <span>اختر صورة من جهازك</span>
@@ -583,7 +584,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
 
             {/* Hint bar */}
             <div className="w-full flex items-center justify-between text-[11px] text-neutral-400 mt-2 px-1">
-              <div className="flex items-center gap-1.5 text-amber-400/90">
+              <div className="flex items-center gap-1.5 text-blue-400/90">
                 <MousePointerClick className="w-3.5 h-3.5" />
                 <span>نصيحة: انقر مباشرة على الجسم في الصورة لعزله وتحديده بدقة إذا احتوت الصورة على عناصر متعددة</span>
               </div>
@@ -599,10 +600,10 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-neutral-200 flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                  <Zap className="w-3.5 h-3.5 text-blue-400" />
                   <span>مستوى التفاصيل (Detail Level):</span>
                 </label>
-                <span className="text-[10px] text-amber-400/80 font-medium">الافتراضي: بسيط جدًا</span>
+                <span className="text-[10px] text-blue-400/80 font-medium">الافتراضي: بسيط جدًا</span>
               </div>
               <div className="grid grid-cols-3 gap-1.5 p-1 bg-neutral-950 rounded-xl border border-neutral-800">
                 <button
@@ -610,7 +611,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                   onClick={() => setSettings((p) => ({ ...p, detailLevel: 'very_simple' }))}
                   className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs transition-all ${
                     settings.detailLevel === 'very_simple'
-                      ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
+                      ? 'bg-blue-600 text-white font-bold shadow-sm'
                       : 'text-neutral-400 hover:text-neutral-200'
                   }`}
                   title="الخط الخارجي الأساسي وأهم الخطوط الهيكلية فقط (بداية رسم مبسط)"
@@ -624,7 +625,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                   onClick={() => setSettings((p) => ({ ...p, detailLevel: 'simple' }))}
                   className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs transition-all ${
                     settings.detailLevel === 'simple'
-                      ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
+                      ? 'bg-blue-600 text-white font-bold shadow-sm'
                       : 'text-neutral-400 hover:text-neutral-200'
                   }`}
                   title="الـOutline + الخطوط الأساسية للجسم والملامح"
@@ -638,7 +639,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                   onClick={() => setSettings((p) => ({ ...p, detailLevel: 'medium' }))}
                   className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs transition-all ${
                     settings.detailLevel === 'medium'
-                      ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
+                      ? 'bg-blue-600 text-white font-bold shadow-sm'
                       : 'text-neutral-400 hover:text-neutral-200'
                   }`}
                   title="الـOutline + الخطوط الأساسية مع ثنيات الملابس الرئيسية"
@@ -660,10 +661,10 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
               <div>
                 <div className="flex justify-between items-center text-xs mb-1">
                   <span className="font-semibold text-neutral-200 flex items-center gap-1.5">
-                    <Sliders className="w-3.5 h-3.5 text-amber-400" />
+                    <Sliders className="w-3.5 h-3.5 text-blue-400" />
                     <span>سمك القلم:</span>
                   </span>
-                  <span className="font-mono font-bold text-amber-400 text-xs">
+                  <span className="font-mono font-bold text-blue-400 text-xs">
                     {settings.lineThickness} بكسل
                   </span>
                 </div>
@@ -673,7 +674,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                   max="10"
                   value={settings.lineThickness}
                   onChange={(e) => setSettings((p) => ({ ...p, lineThickness: Number(e.target.value) }))}
-                  className="w-full accent-amber-500 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
+                  className="w-full accent-blue-500 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
                 />
                 <div className="flex justify-between text-[10px] text-neutral-500 mt-0.5">
                   <span>دقيق (1px)</span>
@@ -696,7 +697,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                         onClick={() => setSettings((p) => ({ ...p, lineColor: c }))}
                         className={`w-6 h-6 rounded-full border transition-transform ${
                           settings.lineColor.toLowerCase() === c.toLowerCase()
-                            ? 'scale-125 border-amber-400 ring-2 ring-amber-500/40'
+                            ? 'scale-125 border-blue-400 ring-2 ring-blue-500/40'
                             : 'border-neutral-700 hover:scale-110'
                         }`}
                         style={{ backgroundColor: c }}
@@ -723,7 +724,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
               <div>
                 <div className="flex justify-between items-center text-xs mb-1">
                   <span className="font-semibold text-neutral-200">شفافية الخط:</span>
-                  <span className="font-mono font-bold text-amber-400 text-xs">
+                  <span className="font-mono font-bold text-blue-400 text-xs">
                     {settings.lineOpacity}%
                   </span>
                 </div>
@@ -733,7 +734,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                   max="100"
                   value={settings.lineOpacity}
                   onChange={(e) => setSettings((p) => ({ ...p, lineOpacity: Number(e.target.value) }))}
-                  className="w-full accent-amber-500 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
+                  className="w-full accent-blue-500 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
                 />
               </div>
 
@@ -750,7 +751,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                       onClick={() => setSettings((p) => ({ ...p, smoothing: lvl }))}
                       className={`py-1 rounded font-medium transition-all ${
                         settings.smoothing === lvl
-                          ? 'bg-amber-500 text-neutral-950 font-bold'
+                          ? 'bg-blue-600 text-white font-bold'
                           : 'text-neutral-400 hover:text-neutral-200'
                       }`}
                     >
@@ -778,7 +779,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                     type="checkbox"
                     checked={settings.cleanLines}
                     onChange={(e) => setSettings((p) => ({ ...p, cleanLines: e.target.checked }))}
-                    className="accent-amber-500 w-4 h-4 rounded"
+                    className="accent-blue-500 w-4 h-4 rounded"
                   />
                 </label>
               </div>
@@ -794,7 +795,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                     onClick={() => setSettings((p) => ({ ...p, backgroundMode: 'transparent' }))}
                     className={`py-1.5 px-2 rounded-md font-medium text-center transition-all ${
                       settings.backgroundMode === 'transparent'
-                        ? 'bg-amber-500 text-neutral-950 font-bold'
+                        ? 'bg-blue-600 text-white font-bold'
                         : 'text-neutral-400 hover:text-neutral-200'
                     }`}
                   >
@@ -805,7 +806,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                     onClick={() => setSettings((p) => ({ ...p, backgroundMode: 'white' }))}
                     className={`py-1.5 px-2 rounded-md font-medium text-center transition-all ${
                       settings.backgroundMode === 'white'
-                        ? 'bg-amber-500 text-neutral-950 font-bold'
+                        ? 'bg-blue-600 text-white font-bold'
                         : 'text-neutral-400 hover:text-neutral-200'
                     }`}
                   >
@@ -826,17 +827,17 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
                     type="checkbox"
                     checked={settings.includeOriginalImage}
                     onChange={(e) => setSettings((p) => ({ ...p, includeOriginalImage: e.target.checked }))}
-                    className="accent-amber-500 rounded"
+                    className="accent-blue-500 rounded"
                   />
                   <span>
                     الطبقة 1 (السفلية): <strong className="text-neutral-200">الصورة الأصلية</strong> بدقتها الكاملة
                   </span>
                 </label>
 
-                <div className="flex items-center gap-2 text-amber-400/90 pl-5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <div className="flex items-center gap-2 text-blue-400/90 pl-5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                   <span>
-                    الطبقة 2 (العلوية): <strong className="text-amber-400">الرسم الخطي بالذكاء الاصطناعي</strong> (شفافة)
+                    الطبقة 2 (العلوية): <strong className="text-blue-400">الرسم الخطي بالذكاء الاصطناعي</strong> (شفافة)
                   </span>
                 </div>
               </div>
@@ -848,7 +849,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
               type="button"
               disabled={isProcessing || !sourceImg}
               onClick={handleServerAIReprocess}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-amber-400 font-bold text-xs border border-amber-500/20 hover:border-amber-500/40 transition-all disabled:opacity-40"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-blue-400 font-bold text-xs border border-blue-500/20 hover:border-blue-500/40 transition-all disabled:opacity-40"
             >
               <RefreshCw className={`w-4 h-4 ${isProcessing ? 'animate-spin' : ''}`} />
               <span>إعادة التحليل بالذكاء الاصطناعي</span>
@@ -859,7 +860,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
         {/* Footer Actions */}
         <div className="flex items-center justify-between px-5 py-3 bg-neutral-950 border-t border-neutral-800">
           <div className="text-xs text-neutral-400 flex items-center gap-2">
-            <Info className="w-4 h-4 text-amber-400" />
+            <Info className="w-4 h-4 text-blue-400" />
             <span>سيتم إنشاء طبقة رسم خطي مستقلة تتيح لك إكمال وتلوين الرسم بحرية تامة</span>
           </div>
 
@@ -876,7 +877,7 @@ export const LineArtModal: React.FC<LineArtModalProps> = ({
               id="ai-drawing-apply-btn"
               disabled={!sourceImg || isProcessing}
               onClick={handleApply}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold transition-all shadow-lg shadow-amber-500/25 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-lg shadow-blue-500/25 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <Check className="w-4 h-4" />
               <span>تطبيق وإضافة الطبقات للرسم</span>

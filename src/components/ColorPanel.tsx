@@ -100,7 +100,7 @@ export const ColorPanel: React.FC<ColorPanelProps> = ({
       {/* Panel Header */}
       <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
         <div className="flex items-center gap-2">
-          <Palette className="w-4 h-4 text-amber-400" />
+          <Palette className="w-4 h-4 text-blue-400" />
           <span className="font-bold text-sm text-neutral-200">نظام الألوان</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -174,7 +174,7 @@ export const ColorPanel: React.FC<ColorPanelProps> = ({
       <div className="space-y-1">
         <div className="flex justify-between text-[11px] text-neutral-400">
           <span>درجة اللون (Hue)</span>
-          <span className="font-mono text-amber-400">{hue}°</span>
+          <span className="font-mono text-blue-400">{hue}°</span>
         </div>
         <input
           type="range"
@@ -212,7 +212,7 @@ export const ColorPanel: React.FC<ColorPanelProps> = ({
             title="استرجاع اللون السابق"
           >
             <div className="text-[11px]">
-              <span className="text-neutral-500 block group-hover:text-amber-400">السابق</span>
+              <span className="text-neutral-500 block group-hover:text-blue-400">السابق</span>
               <span className="font-mono text-neutral-400 text-[10px] uppercase">
                 {previousColor}
               </span>
@@ -256,7 +256,7 @@ export const ColorPanel: React.FC<ColorPanelProps> = ({
               onClick={() => setActiveTab('presets')}
               className={`px-3 py-1 rounded-md text-[11px] font-medium transition-colors ${
                 activeTab === 'presets'
-                  ? 'bg-amber-500 text-neutral-950 font-bold'
+                  ? 'bg-blue-600 text-white font-bold'
                   : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
@@ -266,7 +266,7 @@ export const ColorPanel: React.FC<ColorPanelProps> = ({
               onClick={() => setActiveTab('custom')}
               className={`px-3 py-1 rounded-md text-[11px] font-medium transition-colors ${
                 activeTab === 'custom'
-                  ? 'bg-amber-500 text-neutral-950 font-bold'
+                  ? 'bg-blue-600 text-white font-bold'
                   : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
@@ -277,7 +277,7 @@ export const ColorPanel: React.FC<ColorPanelProps> = ({
           {activeTab === 'custom' && (
             <button
               onClick={() => onAddToCustomPalette(currentColor)}
-              className="flex items-center gap-1 text-[11px] text-amber-400 hover:text-amber-300"
+              className="flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300"
               title="إضافة اللون الحالي إلى المفضلات"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -310,7 +310,7 @@ export const ColorPanel: React.FC<ColorPanelProps> = ({
                   onClick={() => onColorChange(c)}
                   className={`w-7 h-7 rounded-lg border transition-transform hover:scale-110 ${
                     currentColor.toLowerCase() === c.toLowerCase()
-                      ? 'border-amber-400 ring-2 ring-amber-400/40'
+                      ? 'border-blue-400 ring-2 ring-blue-400/40'
                       : 'border-neutral-800'
                   }`}
                 />
@@ -333,7 +333,7 @@ export const ColorPanel: React.FC<ColorPanelProps> = ({
                       onClick={() => onColorChange(c)}
                       className={`w-7 h-7 rounded-lg border transition-transform hover:scale-110 ${
                         currentColor.toLowerCase() === c.toLowerCase()
-                          ? 'border-amber-400 ring-2 ring-amber-400/40'
+                          ? 'border-blue-400 ring-2 ring-blue-400/40'
                           : 'border-neutral-800'
                       }`}
                     />
